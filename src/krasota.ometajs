@@ -1,0 +1,277 @@
+ometa KrasotaJSParser {
+
+    spaces = < space* >:c -> [#spaces, c],
+    spacesNoNl = < (~'\n' space)* >:c -> [#spaces, c],
+    spacesUntil :u = < spacesNoNl '\n' >:s &apply(u) -> [#spaces, s]
+        | &apply(u) -> [#spaces, '']
+        | spaces,
+
+    comment = (fromTo('//', '\n') | fromTo('/*', '*/')):c -> [#comment, c],
+
+    sc = (comment | (< space+ >:s -> [#spaces, s]))*:c -> [#spacesAndComments, c] ,
+
+    nameFirst = letter | '$' | '_',
+    nameRest = nameFirst | digit,
+    iName = firstAndRest(#nameFirst, #nameRest):r -> r.join(''),
+    isKeyword :x = ?KrasotaJSParser._isKeyword(x),
+    name = iName:n ~isKeyword(n) -> [#name, n],
+    keyword :k = iName:kk isKeyword(kk) ?(!k || k == kk) -> [#keyword, kk],
+
+    hexDigit = char:x {this.hexDigits.indexOf(x.toLowerCase())}:v ?(v >= 0) -> v,
+    hexLit = hexLit:n hexDigit:d -> (n * 16 + d)
+        | hexDigit,
+    number = ``0x'' hexLit:n -> [#number, n]
+        | < digit+ ('.' digit+)? >:f -> [#number, parseFloat(f)],
+
+    escapeChar = '\\' char:c -> unescape('\\' + c),
+    str = '\'' (escapeChar | ~'\'' char)*:cs '\'' -> [#string, cs.join('')]
+        | '"' (escapeChar | ~'"' char)*:cs '"' -> [#string, cs.join('')],
+
+    special = ( '(' | ')' | '{' | '}' | '[' | ']' | ','
+        | ';' | '?' | ':' | ``!=='' | ``!='' | ``==='' | ``==''
+        | ``='' | ``>='' | '>' | ``<='' | '<' | ``++'' | ``+=''
+        | '+' | ``--'' | ``-='' | '-' | ``*='' | '*' | ``/=''
+        | '/' | ``%='' | '%' | ``&&='' | ``&&'' | ``||='' | ``||''
+        | '.' | '!' ):s -> [s, s],
+
+    formal = spaces "name",
+    funcRest = "(" listOf(#formal, ','):fs ")" "{" stmts:body "}" -> [#func, fs, body],
+
+    obj = "{" listOf(#objBinding, ','):bs "}" -> [#obj].concat(bs),
+    objBinding = objPropName:n ":" asgnExpr:v -> [#binding, n, v],
+    objPropName = "name" | "number" | "string",
+
+    re = spaces <'/' reBody '/' reFlag*>:x -> [#regExp, x],
+    reBody = re1stChar reChar*,
+    re1stChar = ~('*' || '\\' || '/' || '[') reNonTerm
+        | escapeChar
+        | reClass,
+    reChar = re1stChar | '*',
+    reNonTerm = ~('\n' || '\r') char,
+    reClass = '[' reClassChar* ']',
+    reClassChar = ~('[' || ']') reChar,
+    reFlag = nameFirst,
+
+    spacesUntilExpr = spacesUntil(#expr),
+
+    bracketedExpr = '(' sc:sc1 expr:e sc:sc2 ')' -> [#bracketedExpr, sc1, e, sc2],
+
+    expr = bracketedExpr
+        | keyword(#this),
+
+    expr_ = commaExpr,
+    commaExpr = commaExpr:e1 ',' asgnExpr:e2 -> [#binop, ",", e1, e2]
+        | asgnExpr,
+    asgnExpr = condExpr:e ( "=" asgnExpr:rhs -> [#set, e, rhs]
+        | "+=" asgnExpr:rhs -> [#mset, e, "+", rhs]
+        | "-=" asgnExpr:rhs -> [#mset, e, "-", rhs]
+        | "*=" asgnExpr:rhs -> [#mset, e, "*", rhs]
+        | "/=" asgnExpr:rhs -> [#mset, e, "/", rhs]
+        | "%=" asgnExpr:rhs -> [#mset, e, "%", rhs]
+        | "&&=" asgnExpr:rhs -> [#mset, e, "&&", rhs]
+        | "||=" asgnExpr:rhs -> [#mset, e, "||", rhs]
+        | empty -> e ),
+    condExpr = orExpr:e ( "?" condExpr:t ":" condExpr:f -> [#condExpr, e, t, f]
+        | empty -> e ),
+    orExpr = orExpr:x "||" andExpr:y -> [#binop, "||", x, y]
+        | andExpr,
+    andExpr = andExpr:x "&&" eqExpr:y -> [#binop, "&&", x, y]
+        | eqExpr,
+    eqExpr = eqExpr:x ( "==" relExpr:y -> [#binop, "==", x, y]
+            | "!=" relExpr:y -> [#binop, "!=", x, y]
+            | "===" relExpr:y -> [#binop, "===", x, y]
+            | "!==" relExpr:y -> [#binop, "!==", x, y]
+        )
+        | relExpr,
+    relExpr = relExpr:x ( ">" addExpr:y -> [#binop, ">", x, y]
+            | ">=" addExpr:y -> [#binop, ">=", x, y]
+            | "<" addExpr:y -> [#binop, "<", x, y]
+            | "<=" addExpr:y -> [#binop, "<=", x, y]
+            | "instanceof" addExpr:y -> [#binop, "instanceof", x, y]
+        )
+        | addExpr,
+    addExpr = addExpr:x "+" mulExpr:y -> [#binop, "+", x, y]
+        | addExpr:x "-" mulExpr:y -> [#binop, "-", x, y]
+        | mulExpr,
+    mulExpr = mulExpr:x "*" unary:y -> [#binop, "*", x, y]
+        | mulExpr:x "/" unary:y -> [#binop, "/", x, y]
+        | mulExpr:x "%" unary:y -> [#binop, "%", x, y]
+        | unary,
+    unary = "-" postfix:p -> [#unop, "-", p]
+        | "+" postfix:p -> [#unop, "+", p]
+        | "++" postfix:p -> [#preop, "++", p]
+        | "--" postfix:p -> [#preop, "--", p]
+        | "!" unary:p -> [#unop, "!", p]
+        | "void" unary:p -> [#unop, "void", p]
+        | "delete" unary:p -> [#unop, "delete", p]
+        | "typeof" unary:p -> [#unop, "typeof", p]
+        | postfix,
+    postfix = primExpr:p ( spacesNoNl "++" -> [#postop, "++", p]
+        | spacesNoNl "--" -> [#postop, "--", p]
+        | empty -> p ),
+    primExpr = primExpr:p ( "[" expr:i "]" -> [#getp, i, p]
+            | "." "name":m "(" listOf(#asgnExpr, ','):as ")" -> [#send, m, p].concat(as)
+            | "." "name":f -> [#getp, [#string, f], p]
+            | "(" listOf(#asgnExpr, ','):as ")" -> [#call, p].concat(as)
+        )
+        | primExprHd,
+    primExprHd = "(" expr:e ")" -> e
+        | "this" -> [#this]
+        | "name":n -> [#get, n]
+        | "number":n -> [#number, n]
+        | "string":s -> [#string, s]
+        | "function" funcRest
+        | "new" "name":n "(" listOf(#asgnExpr, ','):as ")" -> [#new, n].concat(as)
+        | "[" listOf(#asgnExpr, ','):es "]" -> [#arr].concat(es)
+        | obj
+        | re,
+
+    block = '{' (stmt* | spaces):c '}' -> [#blockStmt, c],
+
+    vars = "var" listOf(#binding, ','):bs -> [#var].concat(bs),
+    binding = "name":n ( "="
+            asgnExpr
+            | empty -> [#get, 'undefined']
+        ):v -> [n, v],
+
+    spacesUntilStmt = spacesUntil(#stmt),
+
+    stmtWithExprAndStmt :k = keyword(k) sc:sc1 bracketedExpr:be sc:sc2 stmtContent:c -> [k + #Stmt, sc1, be, sc2, c],
+
+    stmtKeyword :k = keyword(k) stmtEnd:se -> [k + #Stmt, se],
+
+    stmtEnd = spacesNoNl:s ('\n' | ';'):c -> [#stmtEnd, s, c]
+        | spacesNoNl:s ( &'}' | end) -> [#stmtEnd, s],
+
+    stmt = < spaces:s1 stmtContent:c spacesUntilStmt:s2 >:cc -> [#stmt, s1, c, s2],
+
+    stmtContent = commentStmt
+        | block
+
+        /*| vars:bs stmtEnd -> bs*/
+
+        | ifStmt
+
+        | whileStmt
+        | doWhileStmt
+
+        /*| "for" "("*/
+                /*( vars | expr | empty -> [#get, 'undefined'] ):i*/
+                /*";" ( expr | empty -> [#get, 'true'] ):c*/
+                /*";" ( expr | empty -> [#get, 'undefined'] ):u*/
+            /*")" stmt:s -> [#for, i, c, u, s]*/
+        /*| "for" "("*/
+                /*( "var" binding:b -> [#var, b] | expr ):v "in" asgnExpr:e*/
+            /*")" stmt:s -> [#forIn, v, e, s]*/
+
+        | breakStmt
+        | continueStmt
+
+        /*| "switch" "(" expr:e ")" "{"*/
+                /*(*/
+                    /*"case" asgnExpr:c ":" stmts:cs -> [#case, c, cs] |*/
+                    /*"default" ":" stmts:cs -> [#default, cs]*/
+                /*)*:cs*/
+            /*"}" -> [#switch, e].concat(cs)*/
+
+        | throwStmt
+        /*| "try" block:t*/
+            /*"catch" "(" "name":e ")" block:c*/
+            /*( "finally" block | empty -> [#get, 'undefined'] ):f -> [#try, t, e, c, f]*/
+
+        | returnStmt
+
+        | withStmt
+
+        | exprStmt
+
+        | emptyStmt,
+
+
+    commentStmt = comment:c -> [#commentStmt, c],
+
+    ifStmt = stmtWithExprAndStmt(#if):i sc:sc1 keyword(#else) sc:sc2 stmtContent:c -> i.concat([sc1, sc2, c]),
+    ifStmt = stmtWithExprAndStmt(#if),
+
+    whileStmt = stmtWithExprAndStmt(#while),
+    doWhileStmt = keyword(#do) sc:sc1 block:c sc:sc2
+        keyword(#while) sc:sc3 bracketedExpr:be -> [#doWhileStmt, sc1, c, sc2, sc3, be],
+
+    breakStmt = stmtKeyword(#break),
+    continueStmt = stmtKeyword(#continue),
+
+    throwStmt = keyword(#throw) sc:sc1 expr:e sc:sc2 stmtEnd:se -> [#throwStmt, sc1, e, sc2, se],
+
+    returnStmt = keyword(#return) (sc:sc1 expr:e)? sc:sc2 stmtEnd:se -> [#returnStmt].concat((e ? [sc1, e] : []).concat([sc2, se])),
+
+    withStmt = stmtWithExprAndStmt(#with),
+
+    exprStmt = expr:e stmtEnd:se -> [#exprStmt, e, se],
+
+    emptyStmt = ';' -> [#emptyStmt],
+
+
+    topLevel = stmt*:c end -> c
+}
+
+KrasotaJSParser.hexDigits = '0123456789abcdef'
+
+KrasotaJSParser._isKeyword = (function(ks, k) {
+    var keywords = {}
+    while(k = ks.shift()) keywords[k] = true
+    return function(k) { return keywords.hasOwnProperty(k) }
+})([
+    'break', 'case', 'catch', 'continue', 'default', 'delete', 'do', 'else', 'finally', 'for', 'function', 'if', 'in',
+    'instanceof', 'new', 'return', 'switch', 'this', 'throw', 'try', 'typeof', 'var', 'void', 'while', 'with'
+])
+
+ometa KrasotaJSSerializer {
+
+    spaces = :s,
+
+    spacesAndComments = [t*:c] -> c,
+
+    keyword = :k,
+
+    bracketedExpr = t:s1 t:e t:s2 -> ['(', s1, e, s2, ')'],
+    stmtWithExprAndStmt :k = t:s1 t:be t:s2 t:c -> [k, s1, be, s2, c],
+    stmtKeyword :k = t:se -> [k, se],
+
+    stmtEnd = t:s :c -> [s + c]
+        | t:s,
+
+
+    stmt = t:s1 t:c t:s2 -> [s1, c, s2],
+
+    commentStmt = comment:c -> [#commentStmt, c],
+
+    ifStmt = stmtWithExprAndStmt(#if):i t:s1 t:s2 t:c -> [i, s1, #else, s2, c],
+    ifStmt = stmtWithExprAndStmt(#if),
+
+    whileStmt = stmtWithExprAndStmt(#while),
+    doWhileStmt = t:s1 t:c t:s2 t:s3 t:be -> [#do, s1, c, s2, #while, s3, be],
+
+    breakStmt -> stmtKeyword(#break),
+    continueStmt -> stmtKeyword(#continue),
+
+    throwStmt = t:s1 t:e t:s2 t:se -> [#throw, sc1, e, sc2, se],
+
+    returnStmt = (t:s1 t:c)? t:s2 t:se -> [#return, c ? [s1, c] : '', s2, se],
+
+    withStmt = stmtWithExprAndStmt(#with),
+
+    exprStmt = t:e t:se -> [e, se],
+
+    emptyStmt -> ';',
+
+
+    t = [:t apply(t):r] -> r,
+
+    topLevel = t*:c end -> this._flatjoin(c)
+}
+
+KrasotaJSSerializer._flatjoin = function(arr) {
+    function j(r, o) { return o.reduce ? o.reduce(j, r) : r + o }
+    return arr.reduce(j, '')
+}
+
