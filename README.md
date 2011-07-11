@@ -1,3 +1,5 @@
+## WORK IN PROGRESS, DO NOT USE
+
 ## What is this?
 krasota.js is trying to save the world.
 It provides the ability to carry out the syntactic transformation JavaScript code.
