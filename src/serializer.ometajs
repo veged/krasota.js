@@ -10,15 +10,15 @@ ometa KrasotaJSSerializer {
 
     number = :n,
 
-    commaList = [[t+:x] ([t+:xx] -> [',', xx])*:xs] -> [x, xs],
+    commaList = t:x (t:xx -> [',', xx])*:xs -> [x, xs],
 
     escapeChar = :c :u -> ['\\', c],
     string = :q [(char | t:ec)*:c] -> [q, c, q],
 
     op = t:s1 :o t:s2 -> [s1, o, s2],
 
-    funcRest = commaList:as t:s t:c -> ['(', as, ')', s, c],
-    funcRest_ = (commaList | t):as t:s t:c -> ['(', as, ')', s, c],
+    funcRest = t:as t:s t:c -> ['(', as, ')', s, c],
+    funcArg = t:s1 t:n t:s2 -> [s1, n, s2],
 
     binop = t:e1 t:o t:e2 -> [e1, o, e2],
     unop = t:o t:e -> [o, e],
@@ -27,19 +27,22 @@ ometa KrasotaJSSerializer {
     getExprSB = t:e t:s1 t:s2 t:i t:s3 -> [e, s1, '[', s2, i, s3, ']'],
     getExprDot = t:e t:s1 t:s2 t:n -> [e, s1, '.', s2, n],
 
-    callExpr = t:e t:s1 (commaList | t):as -> [e, s1, '(', as, ')'],
+    callExpr = t:e t:s1 t:as -> [e, s1, '(', as, ')'],
 
     condExpr = t:e1 t:o1 t:e2 t:o2 t:e3 -> [e1, o1, e2, o2, e3],
 
     bracketedExpr = t:s1 t:e t:s2 -> ['(', s1, e, s2, ')'],
 
-    funcExpr = t:s1 (t:n t:s2)? funcRest:c -> [#function, s1, n ? [n, s2] : '', c],
+    funcExpr = t:s1 t:n t:s2 funcRest:c -> [#function, s1, n, s2, c]
+        | t:s1 funcRest:c -> [#function, s1, c],
 
     newExpr = t:s t:e -> [#new, s, e],
 
-    arr = (commaList | t):c -> ['[', c, ']'],
+    arr = t:c -> ['[', c, ']'],
+    arrItem = t:s1 t:e t:s2 -> [s1, e, s2],
 
-    obj = (commaList | t):c -> ['{', c, '}'],
+    obj = t:c -> ['{', c, '}'],
+    objItem = t:s1 t:n t:s2 t:s3 t:v t:s4 -> [s1, n, s2, ':', s3, v, s4],
 
     re = t:c :f -> [c, f.join('')],
 
@@ -59,9 +62,9 @@ ometa KrasotaJSSerializer {
 
     funcStmt = t:s1 t:n t:s2 funcRest:c -> [#function, s1, n, s2, c],
 
-    varStmt = commaList(#varItem):c -> [#var, c],
-    varItem = t:s1 t:n s2 t:s3 t:e t:s4 -> [s1, n, s2, '=', s3, e, s4]
-        | t:s1 t:n, s2 -> [s1, n, s2],
+    varStmt = t:c -> [#var, c],
+    varItemAsgn = t:n t:s1 t:e t:s2 -> [n, '=', s1, e, s2],
+    varItemName = t:s1 t:n t:s2 -> [s1, n, s2],
 
     ifStmt = stmtWithExprAndStmt(#if):i t:s1 t:s2 t:c -> [i, s1, #else, s2, c],
     ifStmt = stmtWithExprAndStmt(#if),
@@ -72,7 +75,7 @@ ometa KrasotaJSSerializer {
     forStmt = t:s1 forStmtExprs:e t:s2 t:c -> [#for, s1, e, s2, c],
     forStmtExprs = [t:e1 t:e2 t:e3] -> ['(', e1, ';', e2, ';', e3, ')'],
 
-    forInStmt = t:s1 forInStmtExpr:e t:s2 t:c -> [#for, s1, e, sc2, c],
+    forInStmt = t:s1 forInStmtExpr:e t:s2 t:c -> [#for, s1, e, s2, c],
     forInStmtExpr = [t:s1 t:e1 t:s2 t:s3 t:e2 t:s4] -> ['(', s1, e1, s2, 'in', s3, e2, s4, ')'],
 
     breakStmt -> stmtKeyword(#break),

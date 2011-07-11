@@ -11,7 +11,7 @@ ometa KrasotaJSParser {
     sc = (comment | (< space+ >:s -> [#spaces, s]))*:c -> [#spacesAndComments, c] ,
     scNoNl = (comment | (< (~'\n' space)+ >:s -> [#spaces, s]))*:c -> [#spacesAndComments, c] ,
 
-    commaList :t = apply(t):x (',' apply(t))*:xs -> [x].concat(xs),
+    commaList :t = apply(t):x (',' apply(t))*:xs -> [#commaList, x].concat(xs),
 
     nameFirst = letter | '$' | '_',
     nameRest = nameFirst | digit,
@@ -33,7 +33,7 @@ ometa KrasotaJSParser {
     op :o = sc:sc1 seq(o):c sc:sc2 -> [#op, sc1, o, sc2],
 
     funcRest = '(' (commaList(#funcArg) | sc):as ')' sc:s block:c -> [as, s, c],
-    funcArg = sc:sc1 name:n sc:sc2 -> [sc1, n, sc2],
+    funcArg = sc:sc1 name:n sc:sc2 -> [#funcArg, sc1, n, sc2],
 
     expr = commaExpr,
     commaExpr = commaExpr:e1 op(','):o asgnExpr:e2 -> [#binop, e1, o, e2]
@@ -105,11 +105,11 @@ ometa KrasotaJSParser {
     newExpr = keyword(#new) sc:sc1 expr:e -> [#newExpr, sc1, e],
 
     arr = '[' (commaList(#arrItem) | sc):c ']' -> [#arr, c],
-    arrItem = sc:sc1 asgnExpr:e sc:sc2 -> [sc1, e, sc2],
+    arrItem = sc:sc1 asgnExpr:e sc:sc2 -> [#arrItem, sc1, e, sc2],
 
     obj = '{' (commaList(#objItem) | sc):c '}' -> [#obj, c],
     objItem = sc:sc1 (name | string):n sc:sc2
-        ':' sc:sc3 asgnExpr:v sc:sc4 -> [sc1, n, sc2, sc3, v, sc4],
+        ':' sc:sc3 asgnExpr:v sc:sc4 -> [#objItem, sc1, n, sc2, sc3, v, sc4],
 
     re = string_('/'):c
         ('g' | 'i' | 'm')*:f -> [#re, c, f],
@@ -164,9 +164,8 @@ ometa KrasotaJSParser {
 
     varStmt = keyword(#var) commaList(#varItem):c -> [#varStmt, c],
     varItem = varItemAsgn | varItemName,
-    varItemAsgn = varItemName:n '=' sc:sc3 asgnExpr:e sc:sc4 -> n.concat([sc3, e, sc4]),
-    varItemName = sc:sc1 name:n sc:sc2 -> [sc1, n, sc2],
-    varDelim = ',',
+    varItemAsgn = varItemName:n '=' sc:sc1 asgnExpr:e sc:sc2 -> [#varItemAsgn, n, sc1, e, sc2],
+    varItemName = sc:sc1 name:n sc:sc2 -> [#varItemName, sc1, n, sc2],
 
     ifStmt = stmtWithExprAndStmt(#if):i sc:sc1 keyword(#else) sc:sc2 stmtContent:c -> i.concat([sc1, sc2, c]),
     ifStmt = stmtWithExprAndStmt(#if),
@@ -182,8 +181,8 @@ ometa KrasotaJSParser {
         | sc:sc1 -> [sc1],
 
     forInStmt = keyword(#for) sc:sc1 forInStmtExpr:e sc:sc2 block:c -> [#forInStmt, sc1, e, sc2, c],
-    forInStmtExpr = '(' sc:sc1 ((forInStmtVar | asgnExpr):e1 -> console.log('-=-=-=-', JSON.stringify(e1))) 'in' sc:sc3 asgnExpr:e2 sc:sc4 ')' -> [sc1, e1, sc2, sc3, e2, sc4],
-    forInStmtVar = keyword(#var) varItemName:c -> [#varStmt, c],
+    forInStmtExpr = '(' sc:sc1 (forInStmtVar | asgnExpr):e1 sc:sc2 keyword('in') sc:sc3 asgnExpr:e2 sc:sc4 ')' -> [sc1, e1, sc2, sc3, e2, sc4],
+    forInStmtVar = keyword(#var) varItemName:c -> [#varStmt, [c]],
 
     breakStmt = stmtKeyword(#break),
     continueStmt = stmtKeyword(#continue),

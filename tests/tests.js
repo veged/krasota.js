@@ -28,6 +28,7 @@ fs.readFile(process.argv[2], 'utf8', function(err, input){
         console.log('error: ' + e);
         throw e
     }
+    //return '';
     try {
         var result = krasota.KrasotaJSSerializer.matchAll(
                 tree,
