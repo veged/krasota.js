@@ -12,7 +12,8 @@ lib/krasota.js: src
 	-rm $@
 	for i in \
 			krasota.js \
-			krasota.ometajs.js \
+			parser.ometajs.js \
+			serializer.ometajs.js \
 		; do \
 			cat $</$$i >> $@ \
 		; done
