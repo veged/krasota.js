@@ -1,2 +1,1 @@
- return this; 
- if(this) return this; else this;
+for (var i in o) {}
