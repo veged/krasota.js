@@ -1,3 +1,4 @@
+ENV=development
 
 all: lib
 
@@ -22,6 +23,6 @@ tests: $(subst tests/tests,,$(subst .js,,$(wildcard tests/*.js)))
 
 
 tests/%:
-	node tests/tests.js tests/$*.js
+	@KRASOTA_ENV=$(ENV) node tests/tests.js tests/$*.js
 
 .PHONY: all tests
