@@ -4,6 +4,8 @@ ometa KrasotaJSSerializer {
 
     spacesAndComments = [t*:c] -> c,
 
+    comment = :x,
+
     name = :n,
 
     keyword = :k,
@@ -28,6 +30,7 @@ ometa KrasotaJSSerializer {
     getExprDot = t:e t:s1 t:s2 t:n -> [e, s1, '.', s2, n],
 
     callExpr = t:e t:s1 t:as -> [e, s1, '(', as, ')'],
+    callExprArg = t:s1 t:e t:s2 -> [s1, e, s2],
 
     condExpr = t:e1 t:o1 t:e2 t:o2 t:e3 -> [e1, o1, e2, o2, e3],
 
@@ -58,7 +61,7 @@ ometa KrasotaJSSerializer {
 
     stmt = t:s1 t:c t:s2 -> [s1, c, s2],
 
-    commentStmt = comment:c -> [#commentStmt, c],
+    commentStmt = t:c,
 
     funcStmt = t:s1 t:n t:s2 funcRest:c -> [#function, s1, n, s2, c],
 
@@ -97,7 +100,7 @@ ometa KrasotaJSSerializer {
 
     withStmt = stmtWithExprAndStmt(#with),
 
-    exprStmt = t:e t:se -> [e, se],
+    exprStmt = t:e t:s t:se -> [e, s, se],
 
     emptyStmt -> ';',
 

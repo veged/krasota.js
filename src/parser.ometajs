@@ -72,7 +72,7 @@ ometa KrasotaJSParser {
         (op('*') | op('/') | op('%')):o
             unary:e2 -> [#binop, e1, o, e2] )
         | unary,
-    unary = ( (op('-') | op('+') | op('++') | op('--')):o postfix:e
+    unary = ( (op('--') | op('++') | op('+') | op('-')):o postfix:e
             | (op('!') | op('void') | op('delete') | op('typeof')):o unary:e ) -> [#unop, o, e]
         | postfix,
     postfix = getExpr:e
@@ -84,7 +84,7 @@ ometa KrasotaJSParser {
         | callExpr,
     callExpr = callExpr:e sc:sc1 '(' (commaList(#callExprArg) | sc):as ')' -> [#callExpr, e, sc1, as]
         | primExpr,
-    callExprArg = sc:sc1 expr:e sc:sc2 -> [sc1, e, sc2],
+    callExprArg = sc:sc1 expr:e sc:sc2 -> [#callExprArg, sc1, e, sc2],
     primExpr = bracketedExpr
         | keyword(#this)
         | name
@@ -114,7 +114,7 @@ ometa KrasotaJSParser {
     re = string_('/'):c
         ('g' | 'i' | 'm')*:f -> [#re, c, f],
 
-    block = '{' (stmt* | spaces):c '}' -> [#blockStmt, c],
+    block = '{' (stmt* | sc):c '}' -> [#blockStmt, c],
 
     stmtWithBlockStmt :k = keyword(k) sc:sc1 block:c -> [k + #Stmt, sc1, c],
     stmtWithExprAndStmt :k = keyword(k) sc:sc1 bracketedExpr:be sc:sc2 stmtContent:c -> [k + #Stmt, sc1, be, sc2, c],
@@ -205,7 +205,7 @@ ometa KrasotaJSParser {
 
     withStmt = stmtWithExprAndStmt(#with),
 
-    exprStmt = expr:e stmtEnd:se -> [#exprStmt, e, se],
+    exprStmt = expr:e sc:sc stmtEnd:se -> [#exprStmt, e, sc, se],
 
     emptyStmt = ';' -> [#emptyStmt],
 
