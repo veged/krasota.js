@@ -57,7 +57,7 @@ ometa KrasotaJSParser {
     andExpr = andExpr:e1 op('&&'):o eqExpr:e2 -> [#binop, e1, o, e2]
         | eqExpr,
     eqExpr = eqExpr:e1 (
-        (op('==') | op('!=') | op('===') | op('!==')):o
+        (op('===') | op('!==') | op('==') | op('!=')):o
             relExpr:e2 -> [#binop, e1, o, e2] )
         | relExpr,
     relExpr = relExpr:e1 (
