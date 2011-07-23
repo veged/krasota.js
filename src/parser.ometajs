@@ -24,7 +24,10 @@ ometa KrasotaJSParser {
     hexLit = hexLit:n hexDigit:d -> (n * 16 + d)
         | hexDigit,
     number = ``0x'' hexLit:n -> [#number, n]
-        | < digit+ ('.' digit+)? >:f -> [#number, parseFloat(f)],
+        | < digit+ (
+            ( (('e' | 'E') ('-' | '+')?)
+            | '.' )
+                digit+)? >:f -> [#number, parseFloat(f)],
 
     escapeChar = '\\' char:c -> [#escapeChar, c, unescape('\\' + c)],
     string = string_("'") | string_('"'),
