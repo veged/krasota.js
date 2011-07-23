@@ -53,7 +53,7 @@ ometa KrasotaJSSerializer {
     stmtWithExprAndStmt :k = t:s1 t:be t:s2 t:c -> [k, s1, be, s2, c],
     stmtKeyword :k = t:se -> [k, se],
 
-    blockStmt = (([t*:ts] -> ts) | t):c -> ['{', c, '}'],
+    blockStmt = [t+:c] -> ['{', c, '}'],
 
     stmtEnd = t:s :c -> [s + c]
         | t:s,

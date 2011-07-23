@@ -114,7 +114,7 @@ ometa KrasotaJSParser {
     re = string_('/'):c
         ('g' | 'i' | 'm')*:f -> [#re, c, f],
 
-    block = '{' (stmt* | sc):c '}' -> [#blockStmt, c],
+    block = '{' (stmt+ | sc:s -> [s]):c '}' -> [#blockStmt, c],
 
     stmtWithBlockStmt :k = keyword(k) sc:sc1 block:c -> [k + #Stmt, sc1, c],
     stmtWithExprAndStmt :k = keyword(k) sc:sc1 bracketedExpr:be sc:sc2 stmtContent:c -> [k + #Stmt, sc1, be, sc2, c],
