@@ -8,8 +8,8 @@ ometa KrasotaJSParser {
 
     comment = (fromTo('//', '\n') | fromTo('/*', '*/')):c -> [#comment, c],
 
-    sc = (comment | (< space+ >:s -> [#spaces, s]))*:c -> [#spacesAndComments, c] ,
-    scNoNl = (comment | (< (~'\n' space)+ >:s -> [#spaces, s]))*:c -> [#spacesAndComments, c] ,
+    sc = (comment | (< space+ >:s -> [#spaces, s]))*:c -> [#spacesAndComments, c],
+    scNoNl = (comment | (< (~'\n' space)+ >:s -> [#spaces, s]))*:c -> [#spacesAndComments, c],
 
     commaList :t = apply(t):x (',' apply(t))*:xs -> [#commaList, x].concat(xs),
 
@@ -120,8 +120,8 @@ ometa KrasotaJSParser {
     stmtWithExprAndStmt :k = keyword(k) sc:sc1 bracketedExpr:be sc:sc2 stmtContent:c -> [k + #Stmt, sc1, be, sc2, c],
     stmtKeyword :k = keyword(k) stmtEnd:se -> [k + #Stmt, se],
 
-    stmtEnd = spacesNoNl:s ('\n' | ';'):c -> [#stmtEnd, s, c]
-        | spacesNoNl:s ( &'}' | end) -> [#stmtEnd, s],
+    stmtEnd = scNoNl:s ('\n' | ';'):c -> [#stmtEnd, s, c]
+        | scNoNl:s ( &'}' | end) -> [#stmtEnd, s],
 
     stmt = spaces:s1 stmtContent:c spacesUntil(#stmt):s2 -> [#stmt, s1, c, s2],
 
@@ -205,7 +205,7 @@ ometa KrasotaJSParser {
 
     withStmt = stmtWithExprAndStmt(#with),
 
-    exprStmt = expr:e sc:sc stmtEnd:se -> [#exprStmt, e, sc, se],
+    exprStmt = expr:e stmtEnd:se -> [#exprStmt, e, se],
 
     emptyStmt = ';' -> [#emptyStmt],
 

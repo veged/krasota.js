@@ -55,7 +55,7 @@ ometa KrasotaJSSerializer {
 
     blockStmt = [t+:c] -> ['{', c, '}'],
 
-    stmtEnd = t:s :c -> [s + c]
+    stmtEnd = t:s :c -> [s, c]
         | t:s,
 
 
@@ -100,7 +100,7 @@ ometa KrasotaJSSerializer {
 
     withStmt = stmtWithExprAndStmt(#with),
 
-    exprStmt = t:e t:s t:se -> [e, s, se],
+    exprStmt = t:e t:se -> [e, se],
 
     emptyStmt -> ';',
 
