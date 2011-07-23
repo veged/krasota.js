@@ -87,8 +87,8 @@ ometa KrasotaJSSerializer {
     breakStmt -> stmtKeyword(#break),
     continueStmt -> stmtKeyword(#continue),
 
-    switchStmt = t:s1 t:be sc:s2 switchStmtContent:c -> [#switch, s1, be, s2, c],
-    switchStmtContent = [switchStmtItem*:c] -> ['{', c, '}'],
+    switchStmt = t:s1 t:be t:s2 t:c -> [#switch, s1, be, s2, c],
+    switchStmtContent = [t*:c] -> ['{', c, '}'],
     switchStmtItem = t:s1 t:l t:s2 t:s3 [t*:c] -> [s1, l, s2, ':', s3, c],
 
     switchStmtCase = t:s t:e -> [#case, s, e],
