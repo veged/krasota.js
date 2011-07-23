@@ -84,8 +84,8 @@ ometa KrasotaJSSerializer {
     forInStmtExpr = [t:s1 t:e1 t:s2 t:s3 t:e2 t:s4] -> ['(', s1, e1, s2, 'in', s3, e2, s4, ')'],
     forInStmtVar = t:c -> ['var', c],
 
-    breakStmt -> stmtKeyword(#break),
-    continueStmt -> stmtKeyword(#continue),
+    breakStmt = stmtKeyword(#break),
+    continueStmt = stmtKeyword(#continue),
 
     switchStmt = t:s1 t:be t:s2 t:c -> [#switch, s1, be, s2, c],
     switchStmtContent = [t*:c] -> ['{', c, '}'],
