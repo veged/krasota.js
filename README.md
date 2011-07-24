@@ -5,11 +5,16 @@ krasota.js is trying to save the world.
 It provides the ability to carry out the syntactic transformation JavaScript code.
 Conversions can be both for the protection coding style, and for more complex refactorings logic.
 
+## Tests
+
+Run `make tests` for tests. For development version tests run `make tests ENV=development`.
+
 ## Other projects
 * https://github.com/olov/jsshaper
 * https://github.com/mishoo/UglifyJS
 * http://boshi.inimino.org/3box/PanPG/about.html
 * https://github.com/kangax/kratko.js
+* https://github.com/substack/node-burrito
 
 ## Links
 * https://developer.mozilla.org/en/SpiderMonkey/Parser_API

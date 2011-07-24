@@ -1,4 +1,4 @@
-ENV=development
+ENV=production
 
 all: lib
 
