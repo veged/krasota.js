@@ -15,6 +15,7 @@ lib/krasota.js: src
 			krasota.js \
 			parser.ometajs.js \
 			serializer.ometajs.js \
+			identity.ometajs.js \
 		; do \
 			cat $</$$i >> $@ \
 		; done

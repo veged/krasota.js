@@ -7,7 +7,8 @@ fs.readFile(fileName, 'utf8', function(err, input){
     if (err) throw err;
     log(input);
     var tree = matchTop(krasota.KrasotaJSParser, input, 'tree'),
-        result = matchTop(krasota.KrasotaJSSerializer, tree, 'result');
+        identity = matchTop(krasota.KrasotaJSIdentity, tree, 'identity'),
+        result = matchTop(krasota.KrasotaJSSerializer, identity, 'result');
 
     OkOrNot(input == result, fileName);
     input != result &&
