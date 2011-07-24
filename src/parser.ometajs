@@ -48,8 +48,12 @@ ometa KrasotaJSParser {
         | op('*=')
         | op('/=')
         | op('%=')
-        | op('&&=')
-        | op('||=')
+        | op('<<=')
+        | op('>>=')
+        | op('>>>=')
+        | op('&=')
+        | op('^=')
+        | op('|=')
             ):o asgnExpr:e2 -> [#binop, e1, o, e2]
         | empty -> e1 ),
     condExpr = orExpr:e1 (
@@ -57,15 +61,25 @@ ometa KrasotaJSParser {
         | empty -> e1 ),
     orExpr = orExpr:e1 op('||'):o andExpr:e2 -> [#binop, e1, o, e2]
         | andExpr,
-    andExpr = andExpr:e1 op('&&'):o eqExpr:e2 -> [#binop, e1, o, e2]
+    andExpr = andExpr:e1 op('&&'):o bitOrExpr:e2 -> [#binop, e1, o, e2]
+        | bitOrExpr,
+    bitOrExpr = bitOrExpr:e1 op('|'):o bitXorExpr:e2 -> [#binop, e1, o, e2]
+        | bitXorExpr,
+    bitXorExpr = bitXorExpr:e1 op('^'):o bitAndExpr:e2 -> [#binop, e1, o, e2]
+        | bitAndExpr,
+    bitAndExpr = bitAndExpr:e1 op('&'):o eqExpr:e2 -> [#binop, e1, o, e2]
         | eqExpr,
     eqExpr = eqExpr:e1 (
         (op('===') | op('!==') | op('==') | op('!=')):o
             relExpr:e2 -> [#binop, e1, o, e2] )
         | relExpr,
     relExpr = relExpr:e1 (
-        (op('>') | op('>=') | op('<') | op('<=') | op('instanceof')):o
+        (op('>') | op('>=') | op('<') | op('<=') | op('instanceof') | op('in')):o
             relExpr:e2 -> [#binop, e1, o, e2] )
+        | bitShiftExpr,
+    bitShiftExpr = bitShiftExpr:e1 (
+        (op('>>>') | op('>>') | op('<<')):o
+            bitShiftExpr:e2 -> [#binop, e1, o, e2] )
         | addExpr,
     addExpr = addExpr:e1 (
         (op('+') | op('-')):o
@@ -75,7 +89,7 @@ ometa KrasotaJSParser {
         (op('*') | op('/') | op('%')):o
             unary:e2 -> [#binop, e1, o, e2] )
         | unary,
-    unary = ( (op('--') | op('++') | op('+') | op('-')):o postfix:e
+    unary = ( (op('--') | op('++') | op('+') | op('-') | op('~')):o postfix:e
             | (op('!') | op('void') | op('delete') | op('typeof')):o unary:e ) -> [#unop, o, e]
         | postfix,
     postfix = getExpr:e
@@ -187,7 +201,7 @@ ometa KrasotaJSParser {
         | sc:sc1 -> [#forStmtExpr, sc1],
 
     forInStmt = keyword(#for) sc:sc1 forInStmtExpr:e sc:sc2 block:c -> [#forInStmt, sc1, e, sc2, c],
-    forInStmtExpr = '(' sc:sc1 (forInStmtVar | asgnExpr):e1 sc:sc2 keyword('in') sc:sc3 asgnExpr:e2 sc:sc4 ')' -> [sc1, e1, sc2, sc3, e2, sc4],
+    forInStmtExpr = '(' sc:sc1 (forInStmtVar | name):e1 sc:sc2 keyword('in') sc:sc3 asgnExpr:e2 sc:sc4 ')' -> [sc1, e1, sc2, sc3, e2, sc4],
     forInStmtVar = keyword(#var) varItemName:c -> [#varStmt, [#commaList, c]],
 
     breakStmt = stmtWithLabel(#break),
