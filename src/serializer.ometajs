@@ -96,7 +96,8 @@ ometa KrasotaJSSerializer {
     switchStmtDefault = t:s -> [#default, s],
 
     throwStmt = t:s1 t:e t:s2 t:se -> [#throw, s1, e, s2, se],
-    tryStmt = t:s1 tryStmtCatch:c (t:s2 tryStmtFinally:f)? -> [#try, s1, c, f ? [s2, f] : ''],
+    tryStmt = t:s1 t:b t:s2 t:c t:s3 t:f t:s4 -> [#try, s1, b, s2, c, s3, f, s4]
+        | t:s1 t:b t:s2 t:c -> [#try, s1, b, s2, c],
     tryStmtCatch = t:s1 t:be t:s2 t:c -> [#catch, s1, be, s2, c],
     tryStmtFinally = t:s1 t:c -> [#finally, s1, c],
 

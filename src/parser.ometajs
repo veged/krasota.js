@@ -214,7 +214,8 @@ ometa KrasotaJSParser {
     switchStmtDefault = keyword(#default) sc:s -> [#switchStmtDefault, s],
 
     throwStmt = keyword(#throw) sc:sc1 expr:e sc:sc2 stmtEnd:se -> [#throwStmt, sc1, e, sc2, se],
-    tryStmt = stmtWithBlockStmt(#try):t sc:sc1 tryStmtCatch:c (sc:sc2 tryStmtFinally:f)? -> t.concat([sc1, c]).concat(f ? [sc2, f] : []),
+    tryStmt = stmtWithBlockStmt(#try):t sc:sc1 tryStmtCatch:c sc:sc2 tryStmtFinally:f sc:sc3 -> t.concat([sc1, c, sc2, f, sc3])
+        | stmtWithBlockStmt(#try):t sc:sc1 tryStmtCatch:c -> t.concat([sc1, c]),
     tryStmtCatch = keyword(#catch) sc:sc1
         '(' sc:sc2 name:n sc:sc3 ')'
             sc:sc4 block:c -> [#tryStmtCatch, sc1, [#bracketedExpr, sc2, n, sc3], sc4, c],
