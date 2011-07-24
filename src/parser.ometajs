@@ -74,7 +74,7 @@ ometa KrasotaJSParser {
             relExpr:e2 -> [#binop, e1, o, e2] )
         | relExpr,
     relExpr = relExpr:e1 (
-        (op('>') | op('>=') | op('<') | op('<=') | op('instanceof') | op('in')):o
+        (op('>=') | op('>') | op('<=') | op('<') | op('instanceof') | op('in')):o
             relExpr:e2 -> [#binop, e1, o, e2] )
         | bitShiftExpr,
     bitShiftExpr = bitShiftExpr:e1 (
@@ -92,27 +92,33 @@ ometa KrasotaJSParser {
     unary = ( (op('--') | op('++') | op('+') | op('-') | op('~')):o postfix:e
             | (op('!') | op('void') | op('delete') | op('typeof')):o unary:e ) -> [#unop, o, e]
         | postfix,
-    postfix = callExpr:e
+    postfix = leftExpr:e
         ( scNoNl:s (seq('++') | seq('--')):o -> [#postop, e, s, o]
         | empty -> e ),
-    callExpr = callExpr:e sc:sc1 '(' (commaList(#callExprArg) | sc):as ')' -> [#callExpr, e, sc1, as]
-        | newExpr,
-    callExprArg = sc:sc1 expr:e sc:sc2 -> [#callExprArg, sc1, e, sc2],
-    newExpr = keyword(#new) sc:sc1 getExpr:e -> [#newExpr, sc1, e]
+    leftExpr = callExpr | newExpr,
+    callExpr = getExpr_(#callExpr)
+        | callExpr:e sc:sc1 args:as -> [#callExpr, e, sc1, as]
         | getExpr,
-    getExpr = getExpr:e sc:sc1
+    args = '(' (commaList(#arg) | sc):as ')' -> as,
+    arg = sc:sc1 expr:e sc:sc2 -> [#arg, sc1, e, sc2],
+    newExpr = keyword(#new) sc:sc1 newExpr:e -> [#newExpr, sc1, e]
+        | getExpr,
+    getExpr_ :e = apply(e):e sc:sc1
             ( '[' sc:sc2 expr:i sc:sc3 ']' -> [#getExprSB, e, sc1, sc2, i, sc3]
-            | '.' sc:sc2 name:n -> [#getExprDot, e, sc1, sc2, n] )
-        | primExpr,
-    primExpr = bracketedExpr
-        | keyword(#this)
+            | '.' sc:sc2 name:n -> [#getExprDot, e, sc1, sc2, n] ),
+    getExpr = getExpr_(#getExpr)
+        |
+            ( primExpr
+            | funcExpr
+            | keyword(#new) sc:sc1 getExpr:e sc:sc2 args:as  -> [#newExpr, sc1, e, sc2, as] ),
+    primExpr = keyword(#this)
         | name
         | number
         | string
-        | funcExpr
         | arr
         | obj
-        | re,
+        | re
+        | bracketedExpr,
 
     bracketedExpr = '(' sc:sc1 expr:e sc:sc2 ')' -> [#bracketedExpr, sc1, e, sc2],
 

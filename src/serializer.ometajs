@@ -30,7 +30,7 @@ ometa KrasotaJSSerializer {
     getExprDot = t:e t:s1 t:s2 t:n -> [e, s1, '.', s2, n],
 
     callExpr = t:e t:s1 t:as -> [e, s1, '(', as, ')'],
-    callExprArg = t:s1 t:e t:s2 -> [s1, e, s2],
+    arg = t:s1 t:e t:s2 -> [s1, e, s2],
 
     condExpr = t:e1 t:o1 t:e2 t:o2 t:e3 -> [e1, o1, e2, o2, e3],
 
@@ -39,7 +39,8 @@ ometa KrasotaJSSerializer {
     funcExpr = t:s1 t:n t:s2 funcRest:c -> [#function, s1, n, s2, c]
         | t:s1 funcRest:c -> [#function, s1, c],
 
-    newExpr = t:s t:e -> [#new, s, e],
+    newExpr = t:s1 t:e t:s2 t:as -> [#new, s1, e, s2, '(', as, ')']
+        | t:s1 t:e -> [#new, s1, e],
 
     arr = t:c -> ['[', c, ']'],
     arrItem = t:s1 t:e t:s2 -> [s1, e, s2],
