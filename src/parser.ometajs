@@ -27,7 +27,7 @@ ometa KrasotaJSParser {
         | < digit+ (
             ( (('e' | 'E') ('-' | '+')?)
             | '.' )
-                digit+)? >:f -> [#number, parseFloat(f)],
+                digit+)? >:f -> [#number, f],
 
     escapeChar = '\\' char:c -> [#escapeChar, c, unescape('\\' + c)],
     string = string_("'") | string_('"'),
