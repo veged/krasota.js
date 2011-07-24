@@ -9,11 +9,11 @@ fs.readFile(fileName, 'utf8', function(err, input){
     var tree = matchTop(krasota.KrasotaJSParser, input, 'tree'),
         identity = matchTop(krasota.KrasotaJSIdentity, tree, 'identity'),
         beautify = matchTop(krasota.KrasotaJSBeautify1, identity, 'beautify'),
-        result = matchTop(krasota.KrasotaJSSerializer, beautify, 'result');
+        serialize = matchTop(krasota.KrasotaJSSerializer, beautify, 'serialize');
 
-    OkOrNot(input == result, fileName);
-    input != result &&
-        fs.writeFileSync(fileName + '.res', result)
+    OkOrNot(input == serialize, fileName);
+    input != serialize &&
+        fs.writeFileSync(fileName + '.res', serialize)
 
 });
 
@@ -23,32 +23,33 @@ function matchTop(gramma, tree, label) {
                 tree,
                 'topLevel',
                 undefined,
-                function(m, i) { throw { errorPos: i, toString: function(){ return "match failed" } } }
+                function(m, i) { throw { errorPos: i, toString: function(){ return label + ' match failed' } } }
             );
         log(label, result);
-        //log(result);
+        log(result);
         return result;
     } catch (e) {
-        e.errorPos != undefined &&
-            sys.error(
-                tree.slice(0, e.errorPos) +
-                "\n--- Parse error ->" +
-                tree.slice(e.errorPos) + '\n');
-        log('error: ' + e);
+        if(e.errorPos != undefined) {
+            var isString = typeof tree === 'string';
+            isString && (tree = tree.split(''));
+            tree.splice(e.errorPos, 0, '\n--- Parse error ->');
+            log(isString? tree.join('') : tree);
+        }
+        log(label + ' error: ' + e);
         throw e
     }
 }
 
 
-var inspect = require('eyes').inspector({ maxLength: 99999 });
+var inspect = require('eyes').inspector({ maxLength: 99999, stream: process.stderr });
 
 function log(label, obj) {
     if(process.env.KRASOTA_ENV != 'development') return;
     if(arguments.length == 2) {
-        console.log('---> ' + label + ':');
+        sys.error('---> ' + label + ':');
         inspect(obj);
-        console.log('<--- ' + label + '\n');
-    } else console.log(label);
+        sys.error('<--- ' + label + '\n');
+    } else sys.error(' \n' + label);
 }
 
 function OkOrNot(ok, msg) {

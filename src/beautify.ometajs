@@ -3,6 +3,33 @@ ometa KrasotaJSBeautify1 <: KrasotaJSIdentity {
     spaces = :s -> [#spaces, s.replace(/\s+\n/g, '')],
 
     op = t:s1 ?(!s1[1].length) :o ?(o == '?') t:s2 -> [#op, [#spacesAndComments, [[#spaces, ' ']]], o, s2]
-        | ^op
+        | ^op,
+
+    varItemInd = [#varItemAsgn varItemInd:s1 t t t] -> s1
+        | [#varItemName t:s1 t t] -> s1,
+
+    stmt = t:s1 [#varStmt [#commaList <varItemInd:vInd t*>:vs]] t:se t:s2 -> [#stmts].concat(vs.map(function(v, i) {
+            var stmtInd = s1;
+            if(i) {
+                if(v[0] == 'varItemName') {
+                    stmtInd = v[1];
+                    v[1] = vInd;
+                } else {
+                    stmtInd = v[1][1];
+                    v[1][1] = vInd;
+                }
+                stmtInd[1].forEach(function(si) {
+                    if(si[0] == 'spaces') si[1] = si[1].replace(/ {4}$/, '');
+                });
+            }
+
+            var stmtOutd = s2;
+            if(i + 1 < vs.length) {
+                stmtOutd = v[v.length - 1];
+            }
+
+            return [#stmt, stmtInd, [#varStmt, [#commaList, v]], se, stmtOutd]
+        }))
+        | ^stmt
 
 }

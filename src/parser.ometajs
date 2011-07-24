@@ -2,7 +2,7 @@ ometa KrasotaJSParser {
 
     spaces = < space* >:c -> [#spaces, c],
     spacesNoNl = < (~'\n' space)* >:c -> [#spaces, c],
-    spacesUntil :u = < spacesNoNl '\n' >:s &apply(u) -> [#spaces, s]
+    spacesUntil :u = spacesNoNl:s &apply(u) -> s
         | &apply(u) -> [#spaces, '']
         | spaces,
 
@@ -136,7 +136,7 @@ ometa KrasotaJSParser {
     re = string_('/'):c
         ('g' | 'i' | 'm')*:f -> [#re, c, f],
 
-    block = '{' (stmt+ | sc:s -> [s]):c '}' -> [#blockStmt, c],
+    block = '{' (stmts1 | sc:s -> [s]):c '}' -> [#blockStmt, c],
 
     stmtWithBlockStmt :k = keyword(k) sc:sc1 block:c -> [k + #Stmt, sc1, c],
     stmtWithExprAndStmt :k = keyword(k) sc:sc1 bracketedExpr:be sc:sc2 stmtContent:c -> [k + #Stmt, sc1, be, sc2, c],
@@ -146,7 +146,11 @@ ometa KrasotaJSParser {
     stmtEnd = scNoNl:s ('\n' | ';'):c -> [#stmtEnd, s, c]
         | scNoNl:s ( &'}' | end) -> [#stmtEnd, s],
 
-    stmt = spaces:s1 stmtContent:c spacesUntil(#stmt):s2 -> [#stmt, s1, c, s2],
+
+    stmts = stmt*:c -> [#stmts].concat(c),
+    stmts1 = stmt+:c -> [#stmts].concat(c),
+
+    stmt = spaces:s1 stmtContent:c stmtEnd:se spacesUntil(#stmt):s2 -> [#stmt, s1, c, se, s2],
 
     stmtContent = commentStmt
         | funcStmt
@@ -214,7 +218,7 @@ ometa KrasotaJSParser {
 
     switchStmt = keyword(#switch) sc:sc1 bracketedExpr:be sc:sc2 switchStmtContent:c -> [#switchStmt, sc1, be, sc2, c],
     switchStmtContent = '{' switchStmtItem*:c '}' -> [#switchStmtContent, c],
-    switchStmtItem = sc:sc1 (switchStmtCase | switchStmtDefault):l sc:sc2 ':' sc:sc3 stmt*:c -> [#switchStmtItem, sc1, l, sc2, sc3, c],
+    switchStmtItem = sc:sc1 (switchStmtCase | switchStmtDefault):l sc:sc2 ':' sc:sc3 stmts:c -> [#switchStmtItem, sc1, l, sc2, sc3, c],
 
     switchStmtCase = keyword(#case) sc:s expr:e -> [#switchStmtCase, s, e],
     switchStmtDefault = keyword(#default) sc:s -> [#switchStmtDefault, s],
@@ -238,7 +242,7 @@ ometa KrasotaJSParser {
     emptyStmt = ';' -> [#emptyStmt],
 
 
-    topLevel = stmt*:c end -> c
+    topLevel = stmts:c end -> c
 }
 
 KrasotaJSParser.hexDigits = '0123456789abcdef'

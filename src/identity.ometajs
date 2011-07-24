@@ -59,8 +59,9 @@ ometa KrasotaJSIdentity {
     stmtEnd = t:s :c -> [#stmtEnd, s, c]
         | t:s -> [#stmtEnd, s],
 
+    stmts = t*:c -> [#stmts, c],
 
-    stmt = t:s1 t:c t:s2 -> [#stmt, s1, c, s2],
+    stmt = t:s1 t:c t:se t:s2 -> [#stmt, s1, c, se, s2],
 
     commentStmt = t:c -> [#commentStmt, c],
 
@@ -89,8 +90,8 @@ ometa KrasotaJSIdentity {
     continueStmt = stmtWithLabel(#continue),
 
     switchStmt = t:s1 t:be t:s2 t:c -> [#switchStmt, s1, be, s2, c],
-    switchStmtContent = [t*:c] -> [#switchStmtContent, c],
-    switchStmtItem = t:s1 t:l t:s2 t:s3 [t*:c] -> [#switchStmtItem, s1, l, s2, s3, c],
+    switchStmtContent = t:c -> [#switchStmtContent, c],
+    switchStmtItem = t:s1 t:l t:s2 t:s3 t:c -> [#switchStmtItem, s1, l, s2, s3, c],
 
     switchStmtCase = t:s t:e -> [#switchStmtCase, s, e],
     switchStmtDefault = t:s -> [#switchStmtDefault, s],
@@ -115,5 +116,5 @@ ometa KrasotaJSIdentity {
 
     t = [:t apply(t):r] -> r,
 
-    topLevel = t*:c end -> c
+    topLevel = #stmts t*:c end -> [#stmts].concat(c)
 }

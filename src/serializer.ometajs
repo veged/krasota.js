@@ -60,8 +60,9 @@ ometa KrasotaJSSerializer {
     stmtEnd = t:s :c -> [s, c]
         | t:s,
 
+    stmts = t*:c -> c,
 
-    stmt = t:s1 t:c t:s2 -> [s1, c, s2],
+    stmt = t:s1 t:c t:se t:s2 -> [s1, c, se, s2],
 
     commentStmt = t:c,
 
@@ -90,8 +91,8 @@ ometa KrasotaJSSerializer {
     continueStmt = stmtWithLabel(#continue),
 
     switchStmt = t:s1 t:be t:s2 t:c -> [#switch, s1, be, s2, c],
-    switchStmtContent = [t*:c] -> ['{', c, '}'],
-    switchStmtItem = t:s1 t:l t:s2 t:s3 [t*:c] -> [s1, l, s2, ':', s3, c],
+    switchStmtContent = t:c -> ['{', c, '}'],
+    switchStmtItem = t:s1 t:l t:s2 t:s3 t:c -> [s1, l, s2, ':', s3, c],
 
     switchStmtCase = t:s t:e -> [#case, s, e],
     switchStmtDefault = t:s -> [#default, s],
@@ -115,7 +116,7 @@ ometa KrasotaJSSerializer {
 
     t = [:t apply(t):r] -> r,
 
-    topLevel = t*:c end -> this._flatjoin(c)
+    topLevel = #stmts t+:c end -> this._flatjoin(c)
 }
 
 KrasotaJSSerializer._flatjoin = function(arr) {
