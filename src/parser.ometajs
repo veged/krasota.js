@@ -92,23 +92,24 @@ ometa KrasotaJSParser {
     unary = ( (op('--') | op('++') | op('+') | op('-') | op('~')):o postfix:e
             | (op('!') | op('void') | op('delete') | op('typeof')):o unary:e ) -> [#unop, o, e]
         | postfix,
-    postfix = getExpr:e
+    postfix = callExpr:e
         ( scNoNl:s (seq('++') | seq('--')):o -> [#postop, e, s, o]
         | empty -> e ),
+    callExpr = callExpr:e sc:sc1 '(' (commaList(#callExprArg) | sc):as ')' -> [#callExpr, e, sc1, as]
+        | newExpr,
+    callExprArg = sc:sc1 expr:e sc:sc2 -> [#callExprArg, sc1, e, sc2],
+    newExpr = keyword(#new) sc:sc1 getExpr:e -> [#newExpr, sc1, e]
+        | getExpr,
     getExpr = getExpr:e sc:sc1
             ( '[' sc:sc2 expr:i sc:sc3 ']' -> [#getExprSB, e, sc1, sc2, i, sc3]
             | '.' sc:sc2 name:n -> [#getExprDot, e, sc1, sc2, n] )
-        | callExpr,
-    callExpr = callExpr:e sc:sc1 '(' (commaList(#callExprArg) | sc):as ')' -> [#callExpr, e, sc1, as]
         | primExpr,
-    callExprArg = sc:sc1 expr:e sc:sc2 -> [#callExprArg, sc1, e, sc2],
     primExpr = bracketedExpr
         | keyword(#this)
         | name
         | number
         | string
         | funcExpr
-        | newExpr
         | arr
         | obj
         | re,
@@ -118,8 +119,6 @@ ometa KrasotaJSParser {
     funcExpr = keyword(#function) sc:sc1
         (name:n sc:sc2)?
             funcRest:c -> [#funcExpr, sc1].concat(n ? [n, sc2] : []).concat(c),
-
-    newExpr = keyword(#new) sc:sc1 expr:e -> [#newExpr, sc1, e],
 
     arr = '[' (commaList(#arrItem) | sc):c ']' -> [#arr, c],
     arrItem = sc:sc1 asgnExpr:e sc:sc2 -> [#arrItem, sc1, e, sc2],
