@@ -51,7 +51,8 @@ ometa KrasotaJSSerializer {
 
 
     stmtWithExprAndStmt :k = t:s1 t:be t:s2 t:c -> [k, s1, be, s2, c],
-    stmtKeyword :k = t:se -> [k, se],
+    stmtWithLabel :k = t:s t:l t:se -> [k, s, l, se]
+        | t:se -> [k, se],
 
     blockStmt = [t+:c] -> ['{', c, '}'],
 
@@ -84,8 +85,8 @@ ometa KrasotaJSSerializer {
     forInStmtExpr = [t:s1 t:e1 t:s2 t:s3 t:e2 t:s4] -> ['(', s1, e1, s2, 'in', s3, e2, s4, ')'],
     forInStmtVar = t:c -> ['var', c],
 
-    breakStmt = stmtKeyword(#break),
-    continueStmt = stmtKeyword(#continue),
+    breakStmt = stmtWithLabel(#break),
+    continueStmt = stmtWithLabel(#continue),
 
     switchStmt = t:s1 t:be t:s2 t:c -> [#switch, s1, be, s2, c],
     switchStmtContent = [t*:c] -> ['{', c, '}'],
@@ -94,7 +95,7 @@ ometa KrasotaJSSerializer {
     switchStmtCase = t:s t:e -> [#case, s, e],
     switchStmtDefault = t:s -> [#default, s],
 
-    throwStmt = t:s1 t:e t:s2 t:se -> [#throw, sc1, e, sc2, se],
+    throwStmt = t:s1 t:e t:s2 t:se -> [#throw, s1, e, s2, se],
     tryStmt = t:s1 tryStmtCatch:c (t:s2 tryStmtFinally:f)? -> [#try, s1, c, f ? [s2, f] : ''],
     tryStmtCatch = t:s1 t:be t:s2 t:c -> [#catch, s1, be, s2, c],
     tryStmtFinally = t:s1 t:c -> [#finally, s1, c],
@@ -102,6 +103,8 @@ ometa KrasotaJSSerializer {
     returnStmt = (t:s1 t:c)? t:s2 t:se -> [#return, c ? [s1, c] : '', s2, se],
 
     withStmt = stmtWithExprAndStmt(#with),
+
+    labelStmt = t:l t:s1 t:s2 t:c -> [l, s1, ':', s2, c],
 
     exprStmt = t:e t:se -> [e, se],
 

@@ -121,7 +121,8 @@ ometa KrasotaJSParser {
 
     stmtWithBlockStmt :k = keyword(k) sc:sc1 block:c -> [k + #Stmt, sc1, c],
     stmtWithExprAndStmt :k = keyword(k) sc:sc1 bracketedExpr:be sc:sc2 stmtContent:c -> [k + #Stmt, sc1, be, sc2, c],
-    stmtKeyword :k = keyword(k) stmtEnd:se -> [k + #Stmt, se],
+    stmtWithLabel :k = keyword(k) sc:sc1 name:l stmtEnd:se -> [k + #Stmt, sc1, l, se]
+        | keyword(k) stmtEnd:se -> [k + #Stmt, se],
 
     stmtEnd = scNoNl:s ('\n' | ';'):c -> [#stmtEnd, s, c]
         | scNoNl:s ( &'}' | end) -> [#stmtEnd, s],
@@ -153,6 +154,8 @@ ometa KrasotaJSParser {
         | returnStmt
 
         | withStmt
+
+        | labelStmt
 
         | exprStmt
 
@@ -187,8 +190,8 @@ ometa KrasotaJSParser {
     forInStmtExpr = '(' sc:sc1 (forInStmtVar | asgnExpr):e1 sc:sc2 keyword('in') sc:sc3 asgnExpr:e2 sc:sc4 ')' -> [sc1, e1, sc2, sc3, e2, sc4],
     forInStmtVar = keyword(#var) varItemName:c -> [#varStmt, [#commaList, c]],
 
-    breakStmt = stmtKeyword(#break),
-    continueStmt = stmtKeyword(#continue),
+    breakStmt = stmtWithLabel(#break),
+    continueStmt = stmtWithLabel(#continue),
 
     switchStmt = keyword(#switch) sc:sc1 bracketedExpr:be sc:sc2 switchStmtContent:c -> [#switchStmt, sc1, be, sc2, c],
     switchStmtContent = '{' switchStmtItem*:c '}' -> [#switchStmtContent, c],
@@ -207,6 +210,8 @@ ometa KrasotaJSParser {
     returnStmt = keyword(#return) (sc:sc1 expr:e)? sc:sc2 stmtEnd:se -> [#returnStmt].concat((e ? [sc1, e] : []).concat([sc2, se])),
 
     withStmt = stmtWithExprAndStmt(#with),
+
+    labelStmt = name:l sc:sc1 ':' sc:sc2 stmtContent:c -> [#labelStmt, l, sc1, sc2, c],
 
     exprStmt = expr:e stmtEnd:se -> [#exprStmt, e, se],
 
