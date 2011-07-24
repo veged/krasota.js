@@ -1,0 +1,4 @@
+ometa KrasotaJSBeautify1 <: KrasotaJSIdentity {
+    op = t:s1 ?(!s1[1].length) :o ?(o == '?') t:s2 -> [#op, [#spacesAndComments, [[#spaces, ' ']]], o, s2]
+        | ^op
+}
