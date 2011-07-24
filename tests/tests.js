@@ -1,38 +1,31 @@
 var sys = require('sys'),
     fs = require('fs'),
+    krasota = require('../lib/krasota'),
     fileName = process.argv[2];
 
 fs.readFile(fileName, 'utf8', function(err, input){
     if (err) throw err;
     log(input);
+    var tree = matchTop(krasota.KrasotaJSParser, input, 'tree'),
+        result = matchTop(krasota.KrasotaJSSerializer, tree, 'result');
+
+    OkOrNot(input == result, fileName);
+    input != result &&
+        fs.writeFileSync(fileName + '.res', result)
+
+});
+
+function matchTop(gramma, tree, label) {
     try {
-        var krasota = require('../lib/krasota'),
-            tree = krasota.KrasotaJSParser.matchAll(
-                input,
-                'topLevel',
-                undefined,
-                function(m, i) { throw { errorPos: i, toString: function(){ return "match failed" } } }
-            );
-        log('tree', tree);
-    } catch (e) {
-        e.errorPos != undefined &&
-            sys.error(
-                input.slice(0, e.errorPos) +
-                "\n--- Parse error ->" +
-                input.slice(e.errorPos) + '\n');
-        log('error: ' + e);
-        throw e
-    }
-    //return '';
-    try {
-        var result = krasota.KrasotaJSSerializer.matchAll(
+        var result = gramma.matchAll(
                 tree,
                 'topLevel',
                 undefined,
                 function(m, i) { throw { errorPos: i, toString: function(){ return "match failed" } } }
             );
-        log('result', result);
-        log(result);
+        log(label, result);
+        //log(result);
+        return result;
     } catch (e) {
         e.errorPos != undefined &&
             sys.error(
@@ -42,13 +35,8 @@ fs.readFile(fileName, 'utf8', function(err, input){
         log('error: ' + e);
         throw e
     }
+}
 
-    OkOrNot(input == result, fileName);
-    if(input != result) {
-        fs.writeFileSync(fileName + '.res', result)
-    }
-
-});
 
 var inspect = require('eyes').inspector({ maxLength: 99999 });
 
