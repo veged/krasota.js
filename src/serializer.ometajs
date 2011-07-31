@@ -52,10 +52,10 @@ ometa KrasotaJSSerializer {
 
 
     stmtWithExprAndStmt :k = t:s1 t:be t:s2 t:c -> [k, s1, be, s2, c],
-    stmtWithLabel :k = t:s t:l t:se -> [k, s, l, se]
-        | t:se -> [k, se],
+    stmtWithLabel :k = t:s t:l -> [k, s, l]
+        | empty -> [k],
 
-    blockStmt = [t+:c] -> ['{', c, '}'],
+    blockStmt = t:c -> ['{', c, '}'],
 
     stmtEnd = t:s :c -> [s, c]
         | t:s,
@@ -64,12 +64,10 @@ ometa KrasotaJSSerializer {
 
     stmt = t:s1 t:c t:se t:s2 -> [s1, c, se, s2],
 
-    commentStmt = t:c,
-
     funcStmt = t:s1 t:n t:s2 funcRest:c -> [#function, s1, n, s2, c],
 
-    varStmt = t:c -> [#var, c],
-    varItemAsgn = t:n t:s1 t:e t:s2 -> [n, '=', s1, e, s2],
+    varStmt = [t+:c] -> [#var, c.map(function(v, i) { return i == c.length - 1 ? v : [v, ','] })],
+    varItemAsgn = t:n t:s1 t:s2 t:e t:s3 -> [n, s1, '=', s2, e, s3],
     varItemName = t:s1 t:n t:s2 -> [s1, n, s2],
 
     ifStmt = stmtWithExprAndStmt(#if):i t:s1 t:s2 t:c -> [i, s1, #else, s2, c],
@@ -91,32 +89,32 @@ ometa KrasotaJSSerializer {
     continueStmt = stmtWithLabel(#continue),
 
     switchStmt = t:s1 t:be t:s2 t:c -> [#switch, s1, be, s2, c],
-    switchStmtContent = t:c -> ['{', c, '}'],
+    switchStmtContent = [t*:c] -> ['{', c, '}'],
     switchStmtItem = t:s1 t:l t:s2 t:s3 t:c -> [s1, l, s2, ':', s3, c],
 
     switchStmtCase = t:s t:e -> [#case, s, e],
     switchStmtDefault = t:s -> [#default, s],
 
-    throwStmt = t:s1 t:e t:s2 t:se -> [#throw, s1, e, s2, se],
+    throwStmt = t:s1 t:e t:s2 -> [#throw, s1, e, s2],
     tryStmt = t:s1 t:b t:s2 t:c t:s3 t:f t:s4 -> [#try, s1, b, s2, c, s3, f, s4]
         | t:s1 t:b t:s2 t:c -> [#try, s1, b, s2, c],
     tryStmtCatch = t:s1 t:be t:s2 t:c -> [#catch, s1, be, s2, c],
     tryStmtFinally = t:s1 t:c -> [#finally, s1, c],
 
-    returnStmt = (t:s1 t:c)? t:s2 t:se -> [#return, c ? [s1, c] : '', s2, se],
+    returnStmt = (t:s1 t:c)? t:s2 -> [#return, c ? [s1, c] : '', s2],
 
     withStmt = stmtWithExprAndStmt(#with),
 
     labelStmt = t:l t:s1 t:s2 t:c -> [l, s1, ':', s2, c],
 
-    exprStmt = t:e t:se -> [e, se],
+    exprStmt = t:e -> [e],
 
     emptyStmt -> ';',
 
 
     t = [:t apply(t):r] -> r,
 
-    topLevel = #stmts t+:c end -> this._flatjoin(c)
+    topLevel = t:c end -> this._flatjoin(c)
 }
 
 KrasotaJSSerializer._flatjoin = function(arr) {

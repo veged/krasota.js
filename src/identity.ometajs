@@ -50,25 +50,23 @@ ometa KrasotaJSIdentity {
 
     re = t:c :f -> [#re, c, f],
 
-    blockStmt = [t+:c] -> [#blockStmt, c],
+    blockStmt = t:c -> [#blockStmt, c],
 
     stmtWithExprAndStmt :k = t:s1 t:be t:s2 t:c -> [k + #Stmt, s1, be, s2, c],
-    stmtWithLabel :k = t:s t:l t:se -> [k + #Stmt, s, l, se]
-        | t:se -> [k + #Stmt, se],
+    stmtWithLabel :k = t:s t:l -> [k + #Stmt, s, l]
+        |  empty -> [k + #Stmt],
 
     stmtEnd = t:s :c -> [#stmtEnd, s, c]
         | t:s -> [#stmtEnd, s],
 
-    stmts = t*:c -> [#stmts, c],
+    stmts = t*:c -> [#stmts].concat(c),
 
     stmt = t:s1 t:c t:se t:s2 -> [#stmt, s1, c, se, s2],
 
-    commentStmt = t:c -> [#commentStmt, c],
-
     funcStmt = t:s1 t:n t:s2 funcRest:c -> [#funcStmt, s1, n, s2].concat(c),
 
-    varStmt = t:c -> [#varStmt, c],
-    varItemAsgn = t:n t:s1 t:e t:s2 -> [#varItemAsgn, n, s1, e, s2],
+    varStmt = [t+:c] -> [#varStmt, c],
+    varItemAsgn = t:n t:s1 t:s2 t:e t:s3 -> [#varItemAsgn, n, s1, s2, e, s3],
     varItemName = t:s1 t:n t:s2 -> [#varItemName, s1, n, s2],
 
     ifStmt = stmtWithExprAndStmt(#if):i t:s1 t:s2 t:c -> i.concat([s1, s2, c]),
@@ -90,31 +88,31 @@ ometa KrasotaJSIdentity {
     continueStmt = stmtWithLabel(#continue),
 
     switchStmt = t:s1 t:be t:s2 t:c -> [#switchStmt, s1, be, s2, c],
-    switchStmtContent = t:c -> [#switchStmtContent, c],
+    switchStmtContent = [t*:c] -> [#switchStmtContent, c],
     switchStmtItem = t:s1 t:l t:s2 t:s3 t:c -> [#switchStmtItem, s1, l, s2, s3, c],
 
     switchStmtCase = t:s t:e -> [#switchStmtCase, s, e],
     switchStmtDefault = t:s -> [#switchStmtDefault, s],
 
-    throwStmt = t:s1 t:e t:s2 t:se -> [#throwStmt, s1, e, s2, se],
+    throwStmt = t:s1 t:e t:s2 -> [#throwStmt, s1, e, s2],
     tryStmt = t:s1 t:b t:s2 t:c t:s3 t:f t:s4 -> [#tryStmt, s1, b, s2, c, s3, f, s4]
         | t:s1 t:b t:s2 t:c -> [#tryStmt, s1, b, s2, c],
     tryStmtCatch = t:s1 t:be t:s2 t:c -> [#tryStmtCatch, s1, be, s2, c],
     tryStmtFinally = t:s1 t:c -> [#tryStmtFinally, s1, c],
 
-    returnStmt = t:s1 t:c t:s2 t:se -> [#returnStmt, s1, c, s2, se]
-        | t:s2 t:se -> [#returnStmt, s2, se],
+    returnStmt = t:s1 t:c t:s2 -> [#returnStmt, s1, c, s2]
+        | t:s2 -> [#returnStmt, s2],
 
     withStmt = stmtWithExprAndStmt(#with),
 
     labelStmt = t:l t:s1 t:s2 t:c -> [#labelStmt, l, s1, s2, c],
 
-    exprStmt = t:e t:se -> [#exprStmt, e, se],
+    exprStmt = t:e -> [#exprStmt, e],
 
     emptyStmt -> [#emptyStmt],
 
 
     t = [:t apply(t):r] -> r,
 
-    topLevel = #stmts t*:c end -> [#stmts].concat(c)
+    topLevel = t:c end -> c
 }

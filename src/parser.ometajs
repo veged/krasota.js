@@ -6,7 +6,7 @@ ometa KrasotaJSParser {
         | &apply(u) -> [#spaces, '']
         | spaces,
 
-    comment = (fromTo('//', '\n') | fromTo('/*', '*/')):c -> [#comment, c],
+    comment = (< ``//'' (~'\n' char)* > | fromTo('/*', '*/')):c -> [#comment, c],
 
     sc = (comment | (< space+ >:s -> [#spaces, s]))*:c -> [#spacesAndComments, c],
     scNoNl = (comment | (< (~'\n' space)+ >:s -> [#spaces, s]))*:c -> [#spacesAndComments, c],
@@ -136,12 +136,12 @@ ometa KrasotaJSParser {
     re = string_('/'):c
         ('g' | 'i' | 'm')*:f -> [#re, c, f],
 
-    block = '{' (stmts1 | sc:s -> [s]):c '}' -> [#blockStmt, c],
+    block = '{' (stmts1 | sc):c '}' -> [#blockStmt, c],
 
     stmtWithBlockStmt :k = keyword(k) sc:sc1 block:c -> [k + #Stmt, sc1, c],
     stmtWithExprAndStmt :k = keyword(k) sc:sc1 bracketedExpr:be sc:sc2 stmtContent:c -> [k + #Stmt, sc1, be, sc2, c],
-    stmtWithLabel :k = keyword(k) sc:sc1 name:l stmtEnd:se -> [k + #Stmt, sc1, l, se]
-        | keyword(k) stmtEnd:se -> [k + #Stmt, se],
+    stmtWithLabel :k = keyword(k) sc:sc1 name:l -> [k + #Stmt, sc1, l]
+        | keyword(k) -> [k + #Stmt],
 
     stmtEnd = scNoNl:s ('\n' | ';'):c -> [#stmtEnd, s, c]
         | scNoNl:s ( &'}' | end) -> [#stmtEnd, s],
@@ -150,10 +150,9 @@ ometa KrasotaJSParser {
     stmts = stmt*:c -> [#stmts].concat(c),
     stmts1 = stmt+:c -> [#stmts].concat(c),
 
-    stmt = spaces:s1 stmtContent:c stmtEnd:se spacesUntil(#stmt):s2 -> [#stmt, s1, c, se, s2],
+    stmt = sc:sc1 stmtContent:c stmtEnd:se sc:sc2 -> [#stmt, sc1, c, se, sc2],
 
-    stmtContent = commentStmt
-        | funcStmt
+    stmtContent = funcStmt
         | block
 
         | varStmt
@@ -185,16 +184,16 @@ ometa KrasotaJSParser {
         | emptyStmt,
 
 
-    commentStmt = comment:c -> [#commentStmt, c],
-
     funcStmt = keyword(#function) sc:sc1
         name:n sc:sc2
             funcRest:c -> [#funcStmt, sc1, n, sc2].concat(c),
 
-    varStmt = keyword(#var) commaList(#varItem):c -> [#varStmt, c],
+    varStmt = keyword(#var) varItems:c -> [#varStmt, c],
+    varItems = varItem:x sc:sc1 ',' varItems:xs -> { x[x.length - 1] = sc1; [x].concat(xs) }
+        |  varItem:x -> { x[x.length - 1] = [#spacesAndComments, []]; [x] },
     varItem = varItemAsgn | varItemName,
-    varItemAsgn = varItemName:n '=' sc:sc1 asgnExpr:e sc:sc2 -> [#varItemAsgn, n, sc1, e, sc2],
-    varItemName = sc:sc1 name:n sc:sc2 -> [#varItemName, sc1, n, sc2],
+    varItemAsgn = varItemName:n sc:sc1 '=' sc:sc2 asgnExpr:e -> [#varItemAsgn, n, sc1, sc2, e, [#spacesAndComments, []]],
+    varItemName = sc:sc1 name:n -> [#varItemName, sc1, n, [#spacesAndComments, []]],
 
     ifStmt = stmtWithExprAndStmt(#if):i sc:sc1 keyword(#else) sc:sc2 stmtContent:c -> i.concat([sc1, sc2, c]),
     ifStmt = stmtWithExprAndStmt(#if),
@@ -211,7 +210,7 @@ ometa KrasotaJSParser {
 
     forInStmt = keyword(#for) sc:sc1 forInStmtExpr:e sc:sc2 block:c -> [#forInStmt, sc1, e, sc2, c],
     forInStmtExpr = '(' sc:sc1 (forInStmtVar | name):e1 sc:sc2 keyword('in') sc:sc3 asgnExpr:e2 sc:sc4 ')' -> [sc1, e1, sc2, sc3, e2, sc4],
-    forInStmtVar = keyword(#var) varItemName:c -> [#varStmt, [#commaList, c]],
+    forInStmtVar = keyword(#var) varItemName:c -> [#varStmt, [c]],
 
     breakStmt = stmtWithLabel(#break),
     continueStmt = stmtWithLabel(#continue),
@@ -223,7 +222,7 @@ ometa KrasotaJSParser {
     switchStmtCase = keyword(#case) sc:s expr:e -> [#switchStmtCase, s, e],
     switchStmtDefault = keyword(#default) sc:s -> [#switchStmtDefault, s],
 
-    throwStmt = keyword(#throw) sc:sc1 expr:e sc:sc2 stmtEnd:se -> [#throwStmt, sc1, e, sc2, se],
+    throwStmt = keyword(#throw) sc:sc1 expr:e sc:sc2 -> [#throwStmt, sc1, e, sc2],
     tryStmt = stmtWithBlockStmt(#try):t sc:sc1 tryStmtCatch:c sc:sc2 tryStmtFinally:f sc:sc3 -> t.concat([sc1, c, sc2, f, sc3])
         | stmtWithBlockStmt(#try):t sc:sc1 tryStmtCatch:c -> t.concat([sc1, c]),
     tryStmtCatch = keyword(#catch) sc:sc1
@@ -231,18 +230,18 @@ ometa KrasotaJSParser {
             sc:sc4 block:c -> [#tryStmtCatch, sc1, [#bracketedExpr, sc2, n, sc3], sc4, c],
     tryStmtFinally = keyword(#finally) sc:sc1 block:c -> [#tryStmtFinally, sc1, c],
 
-    returnStmt = keyword(#return) (sc:sc1 expr:e)? sc:sc2 stmtEnd:se -> [#returnStmt].concat((e ? [sc1, e] : []).concat([sc2, se])),
+    returnStmt = keyword(#return) (sc:sc1 expr:e)? sc:sc2 -> [#returnStmt].concat((e ? [sc1, e] : []).concat([sc2])),
 
     withStmt = stmtWithExprAndStmt(#with),
 
     labelStmt = name:l sc:sc1 ':' sc:sc2 stmtContent:c -> [#labelStmt, l, sc1, sc2, c],
 
-    exprStmt = expr:e stmtEnd:se -> [#exprStmt, e, se],
+    exprStmt = expr:e -> [#exprStmt, e],
 
     emptyStmt = ';' -> [#emptyStmt],
 
 
-    topLevel = stmts:c end -> c
+    topLevel = [(stmts1 | sc):c] -> c
 }
 
 KrasotaJSParser.hexDigits = '0123456789abcdef'

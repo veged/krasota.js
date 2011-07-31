@@ -19,14 +19,14 @@ fs.readFile(fileName, 'utf8', function(err, input){
 
 function matchTop(gramma, tree, label) {
     try {
-        var result = gramma.matchAll(
+        var result = gramma.match(
                 tree,
                 'topLevel',
                 undefined,
                 function(m, i) { throw { errorPos: i, toString: function(){ return label + ' match failed' } } }
             );
         log(label, result);
-        log(result);
+        //log(result);
         return result;
     } catch (e) {
         if(e.errorPos != undefined) {
