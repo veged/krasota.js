@@ -23,7 +23,7 @@ function matchTop(gramma, tree, label) {
                 tree,
                 'topLevel',
                 undefined,
-                function(m, i) { throw { errorPos: i, toString: function(){ return label + ' match failed' } } }
+                function(m, i) { throw { errorPos: i, toString: function() { return label + ' match failed' } } }
             );
         log(label, result);
         //log(result);

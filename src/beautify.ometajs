@@ -5,31 +5,34 @@ ometa KrasotaJSBeautify1 <: KrasotaJSIdentity {
     op = t:s1 ?(!s1[1].length) :o ?(o == '?') t:s2 -> [#op, [#spacesAndComments, [[#spaces, ' ']]], o, s2]
         | ^op,
 
-    varItemInd = [#varItemAsgn varItemInd:s1 t t t t] -> s1
-        | [#varItemName t:s1 t t] -> s1,
+    varItemInd = ([#varItemAsgn varItemInd:s t t t t] | [#varItemName t:s t t]) -> s,
+    varItemOutd = ([#varItemAsgn t t t t t:s] | [#varItemName t t t:s]) -> s,
 
-    stmt = t:s1 [#varStmt [<varItemInd:vInd t*>:vs]] t:se t:s2 -> [#stmts].concat(vs.map(function(v, i) {
-            var stmtInd = s1;
-            if(i) {
-                if(v[0] == 'varItemName') {
-                    stmtInd = v[1];
-                    v[1] = vInd;
-                } else {
-                    stmtInd = v[1][1];
-                    v[1][1] = vInd;
-                }
-                stmtInd[1].forEach(function(si) {
-                    if(si[0] == 'spaces') si[1] = si[1].replace(/ {4}$/, '');
-                });
-            }
+    splitVarItems :s1 :se :s2 = [t:v1_ splitVarItem1(s1, se, s2, v1_):v1 varItemInd(v1_):v1Ind
+        splitVarItem(s1, se, s2, v1Ind)*:vs] -> [v1].concat(vs),
 
-            var stmtOutd = s2;
-            if(i + 1 < vs.length) {
-                stmtOutd = v[v.length - 1];
-            }
+    splitVarItem1 :s1 :se :s2 = t:v varItemOutd(v):stmtOutd -> [#stmt, s1, [#varStmt, [v]], se, stmtOutd],
 
-            return [#stmt, stmtInd, [#varStmt, [v]], se, stmtOutd]
-        }))
-        | ^stmt
+    splitVarItem :s1 :se :s2 :v1Ind = t:v_ splitVarItem_(v1Ind, v_):v
+        varItemInd(v_):stmtInd_ splitVarItemInd(stmtInd_):stmtInd
+        varItemOutd(v_):stmtOutd -> [#stmt, stmtInd, [#varStmt, [v]], se, stmtOutd],
+    splitVarItem_ :v1Ind = [#varItemAsgn splitVarItem_(v1Ind):n t:s1 t:s2 t:e t:s3] -> [#varItemAsgn, n, s1, s2, e, s3]
+        | [#varItemName t t:n t:s2] -> [#varItemName, v1Ind, n, s2],
+
+    splitVarItemInd = [#spacesAndComments [splitVarItemIndSpaces*:sc]] -> [#spacesAndComments, sc],
+    splitVarItemIndSpaces = [#spaces :s] -> [#spaces, s.replace(/ {4}$/, '')]
+        | t,
+
+    splitVarStmtLast :s = [#stmt t:s1 t:v t:se t:s2] -> [#stmt, s1, v, se, s],
+
+    splitVarStmt = t:s1 [#varStmt :vs_ ?(vs_.length > 1)] t:se t:s2 splitVarItems(s1, se, s2, vs_):vs -> {
+            vs[vs.length - 1] = KrasotaJSBeautify1.match(
+                vs[vs.length - 1],
+                'splitVarStmtLast',
+                [s2]);
+            [#stmts].concat(vs)
+        },
+
+    stmt = splitVarStmt | ^stmt
 
 }
