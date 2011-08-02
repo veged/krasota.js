@@ -20,3 +20,4 @@ Run `make tests` for tests. For development version tests run `make tests ENV=de
 * https://developer.mozilla.org/en/SpiderMonkey/Parser_API
 * http://boshi.inimino.org/3box/PanPG/js_pp/src/js_ast.js
 * http://boshi.inimino.org/3box/asof/1269629763069/PEG/ECMAScript_unified.peg
+* http://code.google.com/p/es-lab/source/browse/trunk/src/parser/es5parser.ojs
