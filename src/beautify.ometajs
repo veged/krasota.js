@@ -38,8 +38,9 @@ ometa KrasotaJSBeautify1 <: KrasotaJSIdentity {
         },
 
 
+    joinVarStmtItemInd false:s1 :s2 = t:s,
     joinVarStmtItemInd :s1 :s2 = t:s -> [#spacesAndComments,
-        (s1? s1[1] : []).concat(s2[1], s1? [[#spaces, '   ']] : [], s[1])],
+        s1[1].concat(s2[1], [[#spaces, '   ']], s[1])],
 
     joinVarStmtItem :ss1 :ss2 = [#varItemAsgn
             joinVarStmtItem(ss1, ss2):n
@@ -48,16 +49,17 @@ ometa KrasotaJSBeautify1 <: KrasotaJSIdentity {
             joinVarStmtItemInd(ss1, ss2):s1
             t:n t:s2] -> [#varItemName, s1, n, s2],
 
-    joinVarStmt :prevOutd = [#stmt t:s1 [#varStmt [joinVarStmtItem(prevOutd, s1):v1 t*:vs]] t:se t:s2] -> [#stmt, s1,
-            [#varStmt, [v1].concat(vs)],
-            se, s2],
+    joinVarStmt :prevOutd = [#stmt t:s1 [#varStmt [joinVarStmtItem(prevOutd, s1):v1 t*:vs]] t:se t:s2] -> [#stmt,
+        s1,
+        [#varStmt, [v1].concat(vs)],
+        se, s2],
 
     joinVarStmts :p = joinVarStmt(p):v1 stmtOutd(v1):v1o joinVarStmts(v1o):vs -> [v1].concat(vs)
             | joinVarStmt(p):v -> [v],
 
     t = joinVarStmts(false):vs ?(vs.length > 1) -> {
             var lastVar = vs[vs.length - 1]; // use stmtEnd and stmtOutd from lastVar
-            lastVar[1] = vs[1][1]; // use stmtInd from firstVar
+            lastVar[1] = vs[0][1]; // use stmtInd from firstVar
             lastVar[2] = [#varStmt, vs.reduce(function(r, v) { r.push.apply(r, v[2][1]); return r }, [])];
             lastVar
         }
