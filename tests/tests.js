@@ -8,7 +8,9 @@ fs.readFile(fileName, 'utf8', function(err, input){
     log(input);
     var tree = matchTop(krasota.KrasotaJSParser, input, 'tree'),
         identity = matchTop(krasota.KrasotaJSIdentity, tree, 'identity'),
-        beautify = matchTop(krasota.KrasotaJSBeautify1, identity, 'beautify'),
+        beautify = krasota.KrasotaJSBeautify(
+            [krasota.KrasotaJSBeautifyTrailingWhitespace, krasota.KrasotaJSBeautifyJoinVars],
+            identity),
         serialize = matchTop(krasota.KrasotaJSSerializer, beautify, 'serialize');
 
     OkOrNot(input == serialize, fileName);
