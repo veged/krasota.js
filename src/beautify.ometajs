@@ -55,7 +55,7 @@ ometa KrasotaJSBeautify1 <: KrasotaJSIdentity {
     joinVarStmts :p = joinVarStmt(p):v1 stmtOutd(v1):v1o joinVarStmts(v1o):vs -> [v1].concat(vs)
             | joinVarStmt(p):v -> [v],
 
-    t = joinVarStmts(false):vs -> {
+    t = joinVarStmts(false):vs ?(vs.length > 1) -> {
             var lastVar = vs[vs.length - 1]; // use stmtEnd and stmtOutd from lastVar
             lastVar[1] = vs[1][1]; // use stmtInd from firstVar
             lastVar[2] = [#varStmt, vs.reduce(function(r, v) { r.push.apply(r, v[2][1]); return r }, [])];
