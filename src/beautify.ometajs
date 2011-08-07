@@ -5,6 +5,9 @@ ometa KrasotaJSBeautify1 <: KrasotaJSIdentity {
     op = t:s1 ?(!s1[1].length) :o ?(o == '?') t:s2 -> [#op, [#spacesAndComments, [[#spaces, ' ']]], o, s2]
         | ^op,
 
+    stmtInd = [#stmt t:s t t t] -> s,
+    stmtOutd = [#stmt t t t t:s] -> s,
+
     varItemInd = ([#varItemAsgn varItemInd:s t t t t] | [#varItemName t:s t t]) -> s,
     varItemOutd = ([#varItemAsgn t t t t t:s] | [#varItemName t t t:s]) -> s,
 
@@ -13,7 +16,8 @@ ometa KrasotaJSBeautify1 <: KrasotaJSIdentity {
 
     splitVarItem1 :s1 :se :s2 = t:v varItemOutd(v):stmtOutd -> [#stmt, s1, [#varStmt, [v]], se, stmtOutd],
 
-    splitVarItem :s1 :se :s2 :v1Ind = t:v_ splitVarItem_(v1Ind, v_):v
+    splitVarItem :s1 :se :s2 :v1Ind = t:v_
+        splitVarItem_(v1Ind, v_):v
         varItemInd(v_):stmtInd_ splitVarItemInd(stmtInd_):stmtInd
         varItemOutd(v_):stmtOutd -> [#stmt, stmtInd, [#varStmt, [v]], se, stmtOutd],
     splitVarItem_ :v1Ind = [#varItemAsgn splitVarItem_(v1Ind):n t:s1 t:s2 t:e t:s3] -> [#varItemAsgn, n, s1, s2, e, s3]
@@ -33,6 +37,32 @@ ometa KrasotaJSBeautify1 <: KrasotaJSIdentity {
             [#stmts].concat(vs)
         },
 
-    stmt = splitVarStmt | ^stmt
+
+    joinVarStmtItemInd :s1 :s2 = t:s -> [#spacesAndComments,
+        (s1? s1[1] : []).concat(s2[1], s1? [[#spaces, '   ']] : [], s[1])],
+
+    joinVarStmtItem :ss1 :ss2 = [#varItemAsgn
+            joinVarStmtItem(ss1, ss2):n
+            t:s1 t:s2 t:e t:s3] -> [#varItemAsgn, n, s1, s2, e, s3]
+        | [#varItemName
+            joinVarStmtItemInd(ss1, ss2):s1
+            t:n t:s2] -> [#varItemName, s1, n, s2],
+
+    joinVarStmt :prevOutd = [#stmt t:s1 [#varStmt [joinVarStmtItem(prevOutd, s1):v1 t*:vs]] t:se t:s2] -> [#stmt, s1,
+            [#varStmt, [v1].concat(vs)],
+            se, s2],
+
+    joinVarStmts :p = joinVarStmt(p):v1 stmtOutd(v1):v1o joinVarStmts(v1o):vs -> [v1].concat(vs)
+            | joinVarStmt(p):v -> [v],
+
+    t = joinVarStmts(false):vs -> {
+            var lastVar = vs[vs.length - 1]; // use stmtEnd and stmtOutd from lastVar
+            lastVar[1] = vs[1][1]; // use stmtInd from firstVar
+            lastVar[2] = [#varStmt, vs.reduce(function(r, v) { r.push.apply(r, v[2][1]); return r }, [])];
+            lastVar
+        }
+        | ^t
+
+    //stmt = splitVarStmt | ^stmt
 
 }
