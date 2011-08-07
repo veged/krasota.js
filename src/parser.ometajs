@@ -230,7 +230,7 @@ ometa KrasotaJSParser {
             sc:sc4 block:c -> [#tryStmtCatch, sc1, [#bracketedExpr, sc2, n, sc3], sc4, c],
     tryStmtFinally = keyword(#finally) sc:sc1 block:c -> [#tryStmtFinally, sc1, c],
 
-    returnStmt = keyword(#return) (sc:sc1 expr:e)? sc:sc2 -> [#returnStmt].concat((e ? [sc1, e] : []).concat([sc2])),
+    returnStmt = keyword(#return) (scNoNl:sc1 expr:e)? scNoNl:sc2 -> [#returnStmt].concat((e ? [sc1, e] : []).concat([sc2])),
 
     withStmt = stmtWithExprAndStmt(#with),
 
