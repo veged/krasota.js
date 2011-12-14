@@ -15,6 +15,7 @@ Run `make tests` for tests. For development version tests run `make tests ENV=de
 * http://boshi.inimino.org/3box/PanPG/about.html
 * https://github.com/kangax/kratko.js
 * https://github.com/substack/node-burrito
+* http://esprima.org/
 
 ## Links
 * https://developer.mozilla.org/en/SpiderMonkey/Parser_API
