@@ -1,8 +1,10 @@
 ENV=production
 
+JS4OMETA = $(patsubst %.ometajs,%.js,$(wildcard lib/krasota/*.ometajs lib/krasota/beautifiers/*.ometajs))
+
 all: lib
 
-lib: $(patsubst %.ometajs,%.js,$(wildcard lib/krasota/*.ometajs))
+lib: $(JS4OMETA)
 
 %.js: %.ometajs
 	ometajs2js -i $< -o $@
@@ -15,5 +17,8 @@ tests/%:
 
 test:
 	mocha
+
+clean:
+	-rm $(JS4OMETA) tests/*.result
 
 .PHONY: all tests test

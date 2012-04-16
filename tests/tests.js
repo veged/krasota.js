@@ -1,59 +1,41 @@
 var UTIL = require('util'),
     FS = require('fs'),
+    PATH = require('path'),
     K = require('../lib/krasota'),
-    fileName = process.argv[2];
+    matchTop = K.matchTop,
+    log = K.log,
+    testFile = process.argv[2],
+    testPrefix = testFile.replace(/\.js$/, ''),
+    dir = PATH.dirname(testFile);
 
-FS.readFile(fileName, 'utf8', function(err, input){
+FS.readFile(testFile, 'utf8', function(err, input){
     if (err) throw err;
     log(input);
     var tree = matchTop(K.KrasotaJSParser, input, 'tree'),
         identity = matchTop(K.KrasotaJSIdentity, tree, 'identity'),
         beautify = K.KrasotaJSBeautify(
-            //[K.KrasotaJSBeautifyTrailingWhitespace, K.KrasotaJSBeautifyJoinVars],
-            [],
+            fileContent(testPrefix + '.beautifiers')
+                .split(/\s+/)
+                .filter(function(b) { return b })
+                .map(function(b) {
+                    return require(b.match(/^\./) ? require('path').resolve(dir, b) : b).KrasotaJS
+                }),
             identity),
         serialize = matchTop(K.KrasotaJSSerializer, beautify, 'serialize');
 
-    OkOrNot(input == serialize, fileName);
+    OkOrNot(
+        fileContent(testPrefix + '.expect', input) == serialize,
+        testFile);
     input != serialize &&
-        FS.writeFileSync(fileName + '.res', serialize)
+        FS.writeFileSync(testPrefix + '.result', serialize)
 
 });
 
-function matchTop(gramma, tree, label) {
-    try {
-        var result = gramma.match(
-                tree,
-                'topLevel',
-                undefined,
-                function(m, i) { throw { errorPos: i, toString: function() { return label + ' match failed' } } }
-            );
-        log(label, result);
-        //log(result);
-        return result;
-    } catch (e) {
-        if(e.errorPos != undefined) {
-            var isString = typeof tree === 'string';
-            isString && (tree = tree.split(''));
-            tree.splice(e.errorPos, 0, '\n--- Parse error ->');
-            log(isString? tree.join('') : tree);
-        }
-        log(label + ' error: ' + e);
-        throw e
-    }
+function fileContent(path, or) {
+    return PATH.existsSync(path) ? String(FS.readFileSync(path)) : or || '';
 }
-
 
 var inspect = require('eyes').inspector({ maxLength: 99999, stream: process.stderr });
-
-function log(label, obj) {
-    if(process.env.KRASOTA_ENV != 'development') return;
-    if(arguments.length == 2) {
-        UTIL.error('---> ' + label + ':');
-        inspect(obj);
-        UTIL.error('<--- ' + label + '\n');
-    } else UTIL.error(' \n' + label);
-}
 
 function OkOrNot(ok, msg) {
     var m = ok ? ['green', 'OK'] : ['red', 'NOT OK'];
