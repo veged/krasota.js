@@ -1,0 +1,40 @@
+{
+  "name": "krasota",
+  "description": "Syntactic transformations of JavaScript code, with taking care of whitespaces and comments.",
+  "version": "0.0.1",
+  "homepage": "http://github.com/veged/krasota.js",
+  "author": "Sergey Berezhnoy <veged@ya.ru> (http://github.com/veged)",
+  "contributors": [
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/veged/krasota.js.git"
+  },
+  "main": "./lib/krasota.js",
+  "directories": {
+    "lib": "./lib"
+  },
+  "bin": {
+    "krasota": "./bin/krasota"
+  },
+  "dependencies": {
+    "coa": "0.3.x",
+    "q": "0.7.x",
+    "ometajs": "2.1.x"
+  },
+  "devDependencies": {
+    "mocha": "1.0.x"
+  },
+  "engines": {
+    "node": ">=0.4.0"
+  },
+  "licenses": [
+    {
+      "type": "AS IS"
+    }
+  ],
+  "scripts": {
+    "prepublish": "make -B",
+    "test": "make test"
+  }
+}

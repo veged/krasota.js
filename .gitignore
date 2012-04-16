@@ -1,3 +1,8 @@
+node_modules
 src/*.ometajs.js
 **/.*.swp
 **/*.res
+lib/krasota/beautify.js
+lib/krasota/identity.js
+lib/krasota/parser.js
+lib/krasota/serializer.js

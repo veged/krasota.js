@@ -1,21 +1,22 @@
-var sys = require('sys'),
-    fs = require('fs'),
-    krasota = require('../lib/krasota'),
+var UTIL = require('util'),
+    FS = require('fs'),
+    K = require('../lib/krasota'),
     fileName = process.argv[2];
 
-fs.readFile(fileName, 'utf8', function(err, input){
+FS.readFile(fileName, 'utf8', function(err, input){
     if (err) throw err;
     log(input);
-    var tree = matchTop(krasota.KrasotaJSParser, input, 'tree'),
-        identity = matchTop(krasota.KrasotaJSIdentity, tree, 'identity'),
-        beautify = krasota.KrasotaJSBeautify(
-            [krasota.KrasotaJSBeautifyTrailingWhitespace, krasota.KrasotaJSBeautifyJoinVars],
+    var tree = matchTop(K.KrasotaJSParser, input, 'tree'),
+        identity = matchTop(K.KrasotaJSIdentity, tree, 'identity'),
+        beautify = K.KrasotaJSBeautify(
+            //[K.KrasotaJSBeautifyTrailingWhitespace, K.KrasotaJSBeautifyJoinVars],
+            [],
             identity),
-        serialize = matchTop(krasota.KrasotaJSSerializer, beautify, 'serialize');
+        serialize = matchTop(K.KrasotaJSSerializer, beautify, 'serialize');
 
     OkOrNot(input == serialize, fileName);
     input != serialize &&
-        fs.writeFileSync(fileName + '.res', serialize)
+        FS.writeFileSync(fileName + '.res', serialize)
 
 });
 
@@ -48,10 +49,10 @@ var inspect = require('eyes').inspector({ maxLength: 99999, stream: process.stde
 function log(label, obj) {
     if(process.env.KRASOTA_ENV != 'development') return;
     if(arguments.length == 2) {
-        sys.error('---> ' + label + ':');
+        UTIL.error('---> ' + label + ':');
         inspect(obj);
-        sys.error('<--- ' + label + '\n');
-    } else sys.error(' \n' + label);
+        UTIL.error('<--- ' + label + '\n');
+    } else UTIL.error(' \n' + label);
 }
 
 function OkOrNot(ok, msg) {
