@@ -75,6 +75,7 @@ Run `make tests` for tests. For development version tests run `make tests ENV=de
 * https://github.com/kangax/kratko.js
 * https://github.com/substack/node-burrito
 * http://esprima.org/
+* https://github.com/fawek/codepainter
 
 ## Links
 * https://developer.mozilla.org/en/SpiderMonkey/Parser_API
