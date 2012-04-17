@@ -57,12 +57,93 @@ Take a look to the [tests/tests.js](tests/tests.js#L11) for example of usage.
 
 ## Which beautifiers are available?
 
-There are some proof-of-concept beautifiers:
+There are not many proof-of-concept beautifiers, but it's complex enough for using as samples for your own.
 
-* [krasota/lib/beautifiers/always-semicolons](lib/beautifiers/always-semicolons.ometajs) -- force insert semicolons
-* [krasota/lib/beautifiers/join-vars](lib/beautifiers/join-vars.ometajs) -- join multiply consecutive `var` statements into one `var` statement with multiply assigns
-* [krasota/lib/beautifiers/split-vars](lib/beautifiers/split-vars.ometajs) -- split `var` statements with multiply assigns into multiply consecutive `var` statements
-* [krasota/lib/beautifiers/trailing-whitespaces](lib/beautifiers/trailing-whitespaces.ometajs) -- remove trailing whitespaces
+### [krasota/lib/beautifiers/always-semicolons](lib/beautifiers/always-semicolons.ometajs)
+Force insert semicolons (you know [epic thread](https://github.com/twitter/bootstrap/issues/3057)).
+Example:
+<table>
+<tr><th>before</th><th>after</th></tr>
+<tr>
+<td>
+
+```javascript
+clearMenus()
+!isActive && $parent.toggleClass('open')
+```
+
+</td>
+<td>
+
+```javascript
+clearMenus();
+!isActive && $parent.toggleClass('open');
+```
+
+</td>
+</tr>
+</table>
+
+
+### [krasota/lib/beautifiers/join-vars](lib/beautifiers/join-vars.ometajs)
+Join multiply consecutive `var` statements into one `var` statement with multiply assigns.
+Example:
+<table>
+<tr><th>before</th><th>after</th></tr>
+<tr>
+<td>
+
+```javascript
+var a = 1;
+var b = 2;
+var c = 3;
+```
+
+</td>
+<td>
+
+```javascript
+var a = 1,
+    b = 2,
+    c = 3;
+```
+
+</td>
+</tr>
+</table>
+
+
+### [krasota/lib/beautifiers/split-vars](lib/beautifiers/split-vars.ometajs)
+Split `var` statements with multiply assigns into multiply consecutive `var` statements.
+Example:
+<table>
+<tr><th>before</th><th>after</th></tr>
+<tr>
+<td>
+
+```javascript
+var a = 1,
+    b = 2,
+    c = 3;
+```
+
+</td>
+<td>
+
+```javascript
+var a = 1;
+var b = 2;
+var c = 3;
+```
+
+</td>
+</tr>
+</table>
+
+
+### [krasota/lib/beautifiers/trailing-whitespaces](lib/beautifiers/trailing-whitespaces.ometajs)
+Remove trailing whitespaces (it's pretty simple without any examples).
+
 
 ## Tests
 
