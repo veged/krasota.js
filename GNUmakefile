@@ -1,6 +1,6 @@
-ENV=production
+ENV?=production
 
-JS4OMETA = $(patsubst %.ometajs,%.js,$(wildcard lib/krasota/*.ometajs lib/krasota/beautifiers/*.ometajs))
+JS4OMETA = $(patsubst %.ometajs,%.js,$(wildcard lib/*.ometajs lib/beautifiers/*.ometajs))
 
 all: lib
 
