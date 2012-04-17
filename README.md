@@ -67,18 +67,18 @@ Example:
 <tr>
 <td>
 
-```javascript
+<pre>
 clearMenus()
 !isActive && $parent.toggleClass('open')
-```
+</pre>
 
 </td>
 <td>
 
-```javascript
+<pre>
 clearMenus();
 !isActive && $parent.toggleClass('open');
-```
+</pre>
 
 </td>
 </tr>
@@ -93,20 +93,20 @@ Example:
 <tr>
 <td>
 
-```javascript
+<pre>
 var a = 1;
 var b = 2;
 var c = 3;
-```
+</pre>
 
 </td>
 <td>
 
-```javascript
+<pre>
 var a = 1,
     b = 2,
     c = 3;
-```
+</pre>
 
 </td>
 </tr>
@@ -121,20 +121,20 @@ Example:
 <tr>
 <td>
 
-```javascript
+<pre>
 var a = 1,
     b = 2,
     c = 3;
-```
+</pre>
 
 </td>
 <td>
 
-```javascript
+<pre>
 var a = 1;
 var b = 2;
 var c = 3;
-```
+</pre>
 
 </td>
 </tr>
