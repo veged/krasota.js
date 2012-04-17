@@ -1,0 +1,226 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Krasota.js by veged</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Krasota.js</h1>
+<p>Syntactic transformations of JavaScript code, with taking care of whitespaces and comments.</p>
+        <p class="view"><a href="https://github.com/veged/krasota.js">View the Project on GitHub <small>veged/krasota.js</small></a></p>
+        <ul>
+          <li><a href="https://github.com/veged/krasota.js/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/veged/krasota.js/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/veged/krasota.js">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h2>What is this?</h2>
+
+<p>krasota.js is trying to save the world.
+It provides the ability to carry out the syntactic transformation JavaScript code.
+Conversions can be both for the protection coding style, and for more complex refactorings logic.</p>
+
+<h2>How to use?</h2>
+
+<h3>Command-line</h3>
+
+<p><em>Note:</em> For using from command-line you should install it globally -- <code>npm install -g krasota</code>.</p>
+
+<pre><code>$ krasota --help
+
+Usage:
+  krasota [OPTIONS]
+
+
+Options:
+  -h, --help : Help
+  -v, --version : Version
+  -i INPUT, --input=INPUT : Input file (default: stdin)
+  -o OUTPUT, --output=OUTPUT : Output file (default: stdout)
+  -b BEAUTIFIERS, --beautifier=BEAUTIFIERS : Local or global path to beautifier module, can be used many times
+</code></pre>
+
+<p>Examples:</p>
+
+<pre><code>$ krasota -i tests/split-vars.js -b krasota/lib/beautifiers/split-vars
+$ krasota -i tests/join-vars.js -b krasota/lib/beautifiers/trailing-whitespaces -b krasota/lib/beautifiers/join-vars
+$ krasota -i my-file.js -o my-beauty-file.js -b ./local/path/to/my/beautifier
+</code></pre>
+
+<p>See below for available build-in beautifiers.</p>
+
+<h3>API</h3>
+
+<p><em>Note:</em> If you are using <code>krasota</code> <em>programatically</em> you should not install it globally, it's enough to declare depends in <code>package.json</code>.</p>
+
+<h4>COA</h4>
+
+<p>Because of using <a href="https://github.com/veged/coa/">COA</a> all command-line interface available through <code>require('krasota').COA</code>.
+Example:</p>
+
+<div class="highlight">
+<pre><span class="nx">require</span><span class="p">(</span><span class="s1">'krasota'</span><span class="p">).</span><span class="nx">COA</span>
+    <span class="p">.</span><span class="nx">invoke</span><span class="p">({</span>
+        <span class="nx">input</span><span class="o">:</span> <span class="s1">'tests/join-vars.js'</span><span class="p">,</span>
+        <span class="nx">beautifiers</span><span class="o">:</span> <span class="p">[</span> <span class="s1">'lib/beautifiers/trailing-whitespaces'</span><span class="p">,</span> <span class="s1">'krasota/lib/beautifiers/join-vars'</span> <span class="p">]</span>
+    <span class="p">})</span>
+</pre>
+</div>
+
+
+<h4>OMeta</h4>
+
+<p>You can use <code>krasota</code> through the <code>require('krasota')</code> in terms of raw <a href="https://github.com/veged/ometa-js/">OmetaJS</a>-grammas.
+Take a look to the <a href="https://github.com/veged/krasota.js/tree/master/tests/tests.js#L11">tests/tests.js</a> for example of usage.</p>
+
+<h2>Which beautifiers are available?</h2>
+
+<p>There are not many proof-of-concept beautifiers, but it's complex enough for using as samples for your own.</p>
+
+<h3><a href="https://github.com/veged/krasota.js/tree/master/lib/beautifiers/always-semicolons.ometajs">krasota/lib/beautifiers/always-semicolons</a></h3>
+
+<p>Force insert semicolons (you know <a href="https://github.com/twitter/bootstrap/issues/3057">epic thread</a>).
+Example:</p>
+
+<table>
+<tr>
+<th>before</th>
+<th>after</th>
+</tr>
+<tr>
+<td>
+
+<pre>
+clearMenus()
+!isActive &amp;&amp; $parent.toggleClass('open')
+</pre>
+
+</td>
+<td>
+
+<pre>
+clearMenus();
+!isActive &amp;&amp; $parent.toggleClass('open');
+</pre>
+
+</td>
+</tr>
+</table><h3><a href="https://github.com/veged/krasota.js/tree/master/lib/beautifiers/join-vars.ometajs">krasota/lib/beautifiers/join-vars</a></h3>
+
+<p>Join multiply consecutive <code>var</code> statements into one <code>var</code> statement with multiply assigns.
+Example:</p>
+
+<table>
+<tr>
+<th>before</th>
+<th>after</th>
+</tr>
+<tr>
+<td>
+
+<pre>
+var a = 1;
+var b = 2;
+var c = 3;
+</pre>
+
+</td>
+<td>
+
+<pre>
+var a = 1,
+    b = 2,
+    c = 3;
+</pre>
+
+</td>
+</tr>
+</table><h3><a href="https://github.com/veged/krasota.js/tree/master/lib/beautifiers/split-vars.ometajs">krasota/lib/beautifiers/split-vars</a></h3>
+
+<p>Split <code>var</code> statements with multiply assigns into multiply consecutive <code>var</code> statements.
+Example:</p>
+
+<table>
+<tr>
+<th>before</th>
+<th>after</th>
+</tr>
+<tr>
+<td>
+
+<pre>
+var a = 1,
+    b = 2,
+    c = 3;
+</pre>
+
+</td>
+<td>
+
+<pre>
+var a = 1;
+var b = 2;
+var c = 3;
+</pre>
+
+</td>
+</tr>
+</table><h3><a href="https://github.com/veged/krasota.js/tree/master/lib/beautifiers/trailing-whitespaces.ometajs">krasota/lib/beautifiers/trailing-whitespaces</a></h3>
+
+<p>Remove trailing whitespaces (it's pretty simple without any examples).</p>
+
+<h2>Tests</h2>
+
+<p>Run <code>make tests</code> for tests. For development version tests run <code>make tests ENV=development</code>.</p>
+
+<h2>Other projects</h2>
+
+<ul>
+<li><a href="https://github.com/olov/jsshaper">https://github.com/olov/jsshaper</a></li>
+<li><a href="https://github.com/mishoo/UglifyJS">https://github.com/mishoo/UglifyJS</a></li>
+<li><a href="http://boshi.inimino.org/3box/PanPG/about.html">http://boshi.inimino.org/3box/PanPG/about.html</a></li>
+<li><a href="https://github.com/kangax/kratko.js">https://github.com/kangax/kratko.js</a></li>
+<li><a href="https://github.com/substack/node-burrito">https://github.com/substack/node-burrito</a></li>
+<li><a href="http://esprima.org/">http://esprima.org/</a></li>
+<li><a href="https://github.com/fawek/codepainter">https://github.com/fawek/codepainter</a></li>
+</ul><h2>Links</h2>
+
+<ul>
+<li><a href="https://developer.mozilla.org/en/SpiderMonkey/Parser_API">https://developer.mozilla.org/en/SpiderMonkey/Parser_API</a></li>
+<li><a href="http://boshi.inimino.org/3box/PanPG/js_pp/src/js_ast.js">http://boshi.inimino.org/3box/PanPG/js_pp/src/js_ast.js</a></li>
+<li><a href="http://boshi.inimino.org/3box/asof/1269629763069/PEG/ECMAScript_unified.peg">http://boshi.inimino.org/3box/asof/1269629763069/PEG/ECMAScript_unified.peg</a></li>
+<li><a href="http://code.google.com/p/es-lab/source/browse/trunk/src/parser/es5parser.ojs">http://code.google.com/p/es-lab/source/browse/trunk/src/parser/es5parser.ojs</a></li>
+</ul>
+      </section>
+    </div>
+    <footer>
+      <p>Project maintained by <a href="https://github.com/veged">veged</a></p>
+      <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
+    </footer>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-30977153-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
