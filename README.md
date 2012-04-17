@@ -59,6 +59,7 @@ Take a look to the [tests/tests.js](tests/tests.js#L11) for example of usage.
 
 There are some proof-of-concept beautifiers:
 
+* [krasota/lib/beautifiers/always-semicolons](lib/beautifiers/always-semicolons.ometajs) -- force insert semicolons
 * [krasota/lib/beautifiers/join-vars](lib/beautifiers/join-vars.ometajs) -- join multiply consecutive `var` statements into one `var` statement with multiply assigns
 * [krasota/lib/beautifiers/split-vars](lib/beautifiers/split-vars.ometajs) -- split `var` statements with multiply assigns into multiply consecutive `var` statements
 * [krasota/lib/beautifiers/trailing-whitespaces](lib/beautifiers/trailing-whitespaces.ometajs) -- remove trailing whitespaces
