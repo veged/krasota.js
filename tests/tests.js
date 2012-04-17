@@ -35,8 +35,6 @@ function fileContent(path, or) {
     return PATH.existsSync(path) ? String(FS.readFileSync(path)) : or || '';
 }
 
-var inspect = require('eyes').inspector({ maxLength: 99999, stream: process.stderr });
-
 function OkOrNot(ok, msg) {
     var m = ok ? ['green', 'OK'] : ['red', 'NOT OK'];
     console.log(Color(m[0], m[1] + ': ' + msg));
