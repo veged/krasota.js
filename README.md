@@ -33,6 +33,8 @@ $ krasota -i tests/join-vars.js -b krasota/lib/beautifiers/trailing-whitespaces 
 $ krasota -i my-file.js -o my-beauty-file.js -b ./local/path/to/my/beautifier
 ```
 
+See below for available build-in beautifiers.
+
 ### API
 
 *Note:* If you are using `krasota` _programatically_ you should not install it globally, it's enough to declare depends in `package.json`.
