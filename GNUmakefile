@@ -15,8 +15,8 @@ tests: test $(subst tests/tests,,$(subst .js,,$(wildcard tests/*.js)))
 tests/%:
 	@KRASOTA_ENV=$(ENV) node tests/tests.js tests/$*.js
 
-test:
-	mocha
+#test:
+#	mocha
 
 clean:
 	-rm $(JS4OMETA) tests/*.result
