@@ -1,7 +1,7 @@
 {
   "name": "krasota",
   "description": "Syntactic transformations of JavaScript code, with taking care of whitespaces and comments.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "homepage": "http://github.com/veged/krasota.js",
   "author": "Sergey Berezhnoy <veged@ya.ru> (http://github.com/veged)",
   "contributors": [
@@ -20,7 +20,8 @@
   "dependencies": {
     "coa": "0.3.x",
     "q": "0.7.x",
-    "ometajs": "2.1.x"
+    "ometajs": "2.1.x",
+    "eyes": "0.1.x"
   },
   "devDependencies": {
     "mocha": "1.0.x"
