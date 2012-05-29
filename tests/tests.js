@@ -18,7 +18,8 @@ FS.readFile(testFile, 'utf8', function(err, input){
                 .split(/\s+/)
                 .filter(function(b) { return b })
                 .map(function(b) {
-                    return require(b.match(/^\./) ? require('path').resolve(dir, b) : b).KrasotaJS
+                  b = b.replace(/^krasota/, '..');
+                  return require(b.match(/^\./) ? require('path').resolve(dir, b) : b).KrasotaJS
                 }),
             identity),
         serialize = matchTop(K.KrasotaJSSerializer, beautify, 'serialize');
