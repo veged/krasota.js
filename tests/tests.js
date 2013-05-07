@@ -32,7 +32,7 @@ FS.readFile(testFile, 'utf8', function(err, input){
 });
 
 function fileContent(path, or) {
-    return PATH.existsSync(path) ? String(FS.readFileSync(path)) : or || '';
+    return FS.existsSync(path) ? String(FS.readFileSync(path)) : or || '';
 }
 
 function OkOrNot(ok, msg) {
