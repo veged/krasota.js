@@ -1,6 +1,7 @@
 node_modules
 src/*.ometajs.js
 .*.swp
+*.back
 *.result
 lib/beautifiers/*.js
 lib/identity.js
