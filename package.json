@@ -20,7 +20,7 @@
   "dependencies": {
     "coa": "0.3.x",
     "q": "0.7.x",
-    "ometajs": "2.1.x",
+    "ometajs": "3.2.x",
     "eyes": "0.1.x"
   },
   "devDependencies": {
