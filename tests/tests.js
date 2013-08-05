@@ -39,6 +39,7 @@ function fileContent(path, or) {
 function OkOrNot(ok, msg) {
     var m = ok ? ['green', 'OK'] : ['red', 'NOT OK'];
     console.log(Color(m[0], m[1] + ': ' + msg));
+    if (!ok) process.exit(1);
 }
 
 var colors = {
