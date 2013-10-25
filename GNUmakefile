@@ -7,7 +7,7 @@ all: lib
 lib: $(JS4OMETA)
 
 %.js: %.ometajs
-	ometajs2js -b -i $< -o $@
+	./node_modules/ometajs/bin/ometajs2js -b -i $< -o $@
 
 tests: test $(subst tests/tests,,$(subst .js,,$(wildcard tests/*.js)))
 
