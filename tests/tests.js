@@ -24,12 +24,11 @@ FS.readFile(testFile, 'utf8', function(err, input){
             identity),
         serialize = matchTop(K.KrasotaJSSerializer, beautify, 'serialize');
 
+    input != serialize &&
+        FS.writeFileSync(testPrefix + '.result', serialize)
     OkOrNot(
         fileContent(testPrefix + '.expect', input) == serialize,
         testFile);
-    input != serialize &&
-        FS.writeFileSync(testPrefix + '.result', serialize)
-
 });
 
 function fileContent(path, or) {
