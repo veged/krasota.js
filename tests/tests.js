@@ -64,6 +64,6 @@ function Color(c, str) {
     return [
             '\033[', colors[c], 'm',
             str,
-            '\033[m',
+            '\033[m'
         ].join('');
 }
