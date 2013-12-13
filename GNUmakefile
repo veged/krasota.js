@@ -16,7 +16,7 @@ tests/%:
 	@KRASOTA_ENV=$(ENV) node tests/tests.js tests/$*.js
 
 tests/recursive:
-	@KRASOTA_ENV=$(ENV) ./bin/krasota recursive -b krasota/lib/beautifiers/join-vars --backup='.back' $@
+	@KRASOTA_ENV=$(ENV) ./bin/krasota recursive -b ./lib/beautifiers/join-vars --backup='.back' $@
 	@find tests/recursive -name '*.back' -delete
 	@diff $@ $@.expect
 
