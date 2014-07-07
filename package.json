@@ -1,11 +1,10 @@
 {
   "name": "krasota",
   "description": "Syntactic transformations of JavaScript code, with taking care of whitespaces and comments.",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "homepage": "http://github.com/veged/krasota.js",
   "author": "Sergey Berezhnoy <veged@ya.ru> (http://github.com/veged)",
-  "contributors": [
-  ],
+  "contributors": [],
   "repository": {
     "type": "git",
     "url": "git://github.com/veged/krasota.js.git"
