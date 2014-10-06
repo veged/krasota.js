@@ -159,6 +159,8 @@ Run `make tests` for tests. For development version tests run `make tests ENV=de
 * https://github.com/substack/node-burrito
 * http://esprima.org/
 * https://github.com/fawek/codepainter
+* http://fixmyjs.com
+* https://github.com/millermedeiros/esformatter
 
 ## Links
 * https://developer.mozilla.org/en/SpiderMonkey/Parser_API
