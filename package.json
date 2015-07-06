@@ -19,7 +19,7 @@
   "dependencies": {
     "coa": "0.3.x",
     "q": "0.7.x",
-    "ometajs": "3.3.x",
+    "ometajs": "4.0.x",
     "eyes": "0.1.x",
     "ignore": "2.2.8"
   },
